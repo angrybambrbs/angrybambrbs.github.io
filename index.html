@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ClanPulse</title>
+<style>
+:root{--bg:#12101a;--card:#1c1928;--tx:#ece9f5;--mut:#9a94b0;--ac:#8b5cf6;--bd:#2f2a42;--bad:#f87171}
+*{box-sizing:border-box}
+body{margin:0;font:15px system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+main{max-width:880px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0}h2{font-size:17px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+button,input,select,textarea{font:inherit;color:var(--tx);background:#14121d;border:1px solid var(--bd);border-radius:8px;padding:8px 12px}
+button{cursor:pointer;background:var(--ac);border-color:var(--ac);color:#fff}
+button.ghost{background:transparent;border-color:var(--bd);color:var(--mut)}
+button.ghost.on{border-color:var(--ac);color:var(--tx)}
+textarea{width:100%;min-height:120px}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mut);font-weight:500}
+td input[type=number]{width:80px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.dim td{color:var(--mut)}
+.hero{max-width:520px;margin:10vh auto 0;text-align:center}
+.logo{font-weight:700;letter-spacing:.5px;color:var(--ac);margin-bottom:12px}
+.hero h1{font-size:28px;line-height:1.2;margin-bottom:10px}
+.feats{list-style:none;padding:0;margin:20px 0;text-align:left;display:inline-block}
+.feats li{padding:6px 0 6px 24px;position:relative}
+.feats li:before{content:"✓";position:absolute;left:0;color:var(--ac)}
+button.discord{background:#5865f2;border-color:#5865f2;font-size:16px;padding:12px 24px}
+button:disabled{opacity:.6;cursor:default}
+.me{display:flex;align-items:center;gap:8px;color:var(--mut)}
+.me img{width:28px;height:28px;border-radius:50%}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fld span{color:var(--mut);font-size:13px}
+.fld input,.fld select,.fld textarea{width:100%}
+.fld textarea{min-height:80px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 12px}
+.chk{display:inline-flex;gap:6px;align-items:center;margin:0 14px 10px 0}
+.card p{margin:4px 0}
+.av{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:none}
+.brand{display:flex;align-items:center;gap:10px}
+.av.sm{width:28px;height:28px;border-radius:50%}
+.log{max-height:55vh;overflow-y:auto;margin-bottom:10px}
+.msg{padding:8px 0;border-bottom:1px solid var(--bd)}
+.msg p{margin:4px 0 0;white-space:pre-wrap;word-break:break-word}
+.msg .x{margin-left:auto;padding:2px 8px}
+.conv{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.badge{background:var(--ac);color:#fff;border-radius:10px;padding:0 7px;font-size:12px}
+.badge:empty{display:none}
+.topr{display:flex;gap:8px;align-items:center;flex:none}
+.top .brand{min-width:0}
+.top h1{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avb{padding:4px 8px}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:min(300px,85vw);background:var(--card);border-right:1px solid var(--bd);padding:16px;transform:translateX(-105%);transition:transform .2s;z-index:20;overflow-y:auto}
+.drawer.open{transform:none}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:10}
+.scrim.open{opacity:1;pointer-events:auto}
+.navi{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:transparent;border:0;border-radius:8px;padding:10px 12px;color:var(--tx)}
+.navi.on{background:#14121d;color:var(--ac)}
+.grp{margin:14px 0 6px;font-size:13px}
+#cmsg,#dmsg{min-height:56px}
+a{color:var(--ac)}
+.mut{color:var(--mut)}.err{color:var(--bad)}
+</style>
+</head>
+<body>
+<main id="app"><p class="mut">Загрузка…</p></main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// ===== НАСТРОЙКИ: вставь свой anon / publishable key =====
+const SUPABASE_URL = 'https://jzfaggufycangmgwuuks.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_0kJv9lAMAvBYwPQW23Qwyg_R_MkNBAe';
+// =========================================================
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const app = document.getElementById('app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let user = null, clan = null, tab = 'rating';
+
+function msg(text) { app.innerHTML = `<div class="card err">${esc(text)}</div>`; }
+
+let myRole = 'viewer';
+const canEdit = () => myRole === 'owner' || myRole === 'officer';
+const ROLE = { owner: 'владелец', officer: 'офицер', viewer: 'участник' };
+
+function grabInvite() {
+  try {
+    const c = new URLSearchParams(location.search).get('invite');
+    if (c) { sessionStorage.setItem('cp_invite', c); history.replaceState(null, '', location.pathname); }
+  } catch (e) {}
+}
+const pendingInvite = () => { try { return sessionStorage.getItem('cp_invite'); } catch (e) { return null; } };
+const clearInvite = () => { try { sessionStorage.removeItem('cp_invite'); } catch (e) {} };
+
+async function init() {
+  grabInvite();
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return showLogin(oauthError(), !!pendingInvite());
+  user = session.user;
+  isAdmin = (await sb.rpc('is_platform_admin')).data === true;
+  sb.rpc('touch_card').then(() => {});
+  await refreshUnread(); startDmSub();
+  sb.from('profiles').update({ avatar_url: (user.user_metadata || {}).avatar_url || null }).eq('user_id', user.id).then(() => {});
+  let note = '';
+  const code = pendingInvite();
+  if (code) {
+    const { error } = await sb.rpc('join_clan', { p_code: code });
+    clearInvite();
+    if (error) note = error.message;
+  }
+  const { data, error } = await sb.from('clan_members').select('role, clans(id,name,avatar_url)').eq('user_id', user.id).limit(1);
+  if (error) return msg('Ошибка: ' + error.message);
+  if (!data.length) { tab = 'search'; hubNote = note; return renderHub(); }
+  clan = data[0].clans; myRole = data[0].role;
+  sb.rpc('touch_member', { cid: clan.id }).then(() => {});
+  render();
+  if (note) alert(note);
+}
+
+function oauthError() {
+  const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
+  return q.get('error_description') || h.get('error_description') || '';
+}
+
+function showLogin(errText, invited) {
+  app.innerHTML = `<div class="hero">
+    <div class="logo">ClanPulse</div>
+    ${invited ? '<p><b>Вас пригласили в клан.</b> Войдите через Discord, чтобы вступить.</p>' : ''}
+    <h1>Учёт активности клана без таблиц</h1>
+    <p class="mut">Посещаемость боёв, рейтинг игроков и отряды в одном месте.</p>
+    <ul class="feats">
+      <li>Кто был в бою и как часто: за неделю, месяц и всё время</li>
+      <li>Отряды и состав клана под рукой у офицеров</li>
+      <li>Вход через Discord, пароль не нужен</li>
+    </ul>
+    <div><button id="login" class="discord">Войти через Discord</button></div>
+    <p id="lerr" class="err">${esc(errText || '')}</p>
+  </div>`;
+  const btn = document.getElementById('login');
+  btn.onclick = async () => {
+    btn.disabled = true; btn.textContent = 'Переходим в Discord…';
+    const { error } = await sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: location.origin + location.pathname } });
+    if (error) {
+      btn.disabled = false; btn.textContent = 'Войти через Discord';
+      document.getElementById('lerr').textContent = 'Не удалось войти: ' + error.message;
+    }
+  };
+}
+
+let hubNote = '';
+let isAdmin = false;
+let unread = 0, chan = null, dmPartner = null, dmListener = null, dmChan = null, dmChanUser = null;
+const FACTIONS = { svoboda: 'Свобода', dolg: 'Долг', naemniki: 'Наёмники', zavet: 'Завет' };
+const GOALS = { tournaments: 'Рейтинговые турниры', brawls: 'Потасовки', bases: 'Захват баз', chrono: 'Хроноразломы и аирдропы', open: 'Открытый мир и фарм', casual: 'Без напряга' };
+const GEAR = { 1: 'Ветеранская', 2: 'Мастерская', 3: 'Мастерская +10', 4: 'Мастерская +15' };
+const ARMOR = { combat: 'Боевая', bio: 'Био (3+ заражения)', speed: 'Скоростная (ралик)', mixed: 'Комбинированная' };
+const TIERS = { S: 'S', A: 'A', B: 'B', C: 'C', D: 'D', E: 'E' };
+const WEEK = { 0: '0', 1: '1', 2: '2', 3: '3' };
+const STATUS = { pending: 'на рассмотрении', accepted: 'принята', rejected: 'отклонена', withdrawn: 'отозвана' };
+const val = id => document.getElementById(id).value;
+const txt = id => val(id).trim() || null;
+const numv = id => { const v = val(id); return v === '' ? null : Number(v); };
+const selOpts = (obj, sel, any) => (any ? `<option value="">${any}</option>` : '') +
+  Object.entries(obj).map(([k, v]) => `<option value="${k}" ${String(sel ?? '') === k ? 'selected' : ''}>${esc(v)}</option>`).join('');
+const fld = (label, inner) => `<label class="fld"><span>${label}</span>${inner}</label>`;
+
+function shell(title, tabs, views, again, icon, primary) {
+  stopChan(); dmListener = null;
+  const md = user.user_metadata || {};
+  const label = Object.fromEntries(tabs);
+  const cnt = '<span class="badge dmcount">' + (unread || '') + '</span>';
+  const logo = icon ? '<img class="av" src="' + esc(icon) + '" alt="">' : '';
+  const nav = tabs.map(([id, l]) => (id === 'dm' ? '<div class="mut grp">Аккаунт</div>' : '') +
+    `<button class="navi ${tab === id ? 'on' : ''}" data-t="${id}"><span>${l}</span>${id === 'dm' ? cnt : ''}</button>`).join('');
+  app.innerHTML = `<div class="top"><span class="brand"><button class="ghost" id="menu" aria-label="Меню">☰</button>${logo}<h1>${esc(title)}</h1></span>
+    <span class="topr"><button class="ghost ${tab === 'dm' ? 'on' : ''}" data-t="dm" aria-label="Сообщения">✉ ${cnt}</button>
+    <button class="ghost avb ${tab === 'profile' ? 'on' : ''}" data-t="profile" aria-label="Профиль">${md.avatar_url ? '<img class="av sm" referrerpolicy="no-referrer" src="' + esc(md.avatar_url) + '" alt="">' : 'Профиль'}</button></span></div>
+    <div class="tabs">${primary.filter(id => label[id]).map(id => `<button class="ghost ${tab === id ? 'on' : ''}" data-t="${id}">${label[id]}</button>`).join('')}</div>
+    <div id="body"></div>
+    <div class="scrim" id="scrim"></div>
+    <aside class="drawer" id="drawer"><div class="brand" style="margin-bottom:8px">${logo}<b>${esc(title)}</b></div>
+      <div class="mut grp">Разделы</div>${nav}
+      <div class="grp"><button class="navi" id="out">Выйти</button></div></aside>`;
+  const drawer = document.getElementById('drawer'), scrim = document.getElementById('scrim');
+  const toggle = open => { drawer.classList.toggle('open', open); scrim.classList.toggle('open', open); };
+  document.getElementById('menu').onclick = () => toggle(true);
+  scrim.onclick = () => toggle(false);
+  document.getElementById('out').onclick = async () => { await sb.auth.signOut(); init(); };
+  app.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; again(); });
+  views[tab]();
+}
+
+function render() {
+  const tabs = [['rating', 'Рейтинг']];
+  if (canEdit()) tabs.push(['match', 'Новый бой']);
+  tabs.push(['history', 'История']);
+  if (canEdit()) tabs.push(['roster', 'Состав'], ['apps', 'Заявки']);
+  tabs.push(['chat', 'Чат клана'], ['team', 'Команда']);
+  if (myRole === 'owner') tabs.push(['settings', 'Клан в поиске']);
+  tabs.push(['dm', 'Сообщения'], ['profile', 'Профиль']);
+  if (isAdmin) tabs.push(['admin', 'Модерация']);
+  if (!tabs.some(t => t[0] === tab)) tab = 'rating';
+  shell(clan.name, tabs, { rating: viewRating, match: viewMatch, history: viewHistory, roster: viewRoster, team: viewTeam, apps: viewApps,
+    settings: viewSettings, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm }, render, clan.avatar_url, ['rating', 'match', 'chat']);
+}
+
+function renderHub() {
+  const tabs = [['search', 'Поиск клана'], ['myapps', 'Мои заявки'], ['start', 'Создать клан'], ['dm', 'Сообщения'], ['profile', 'Профиль']];
+  if (isAdmin) tabs.push(['admin', 'Модерация']);
+  if (!tabs.some(t => t[0] === tab)) tab = 'search';
+  shell('ClanPulse', tabs, { search: viewSearch, myapps: viewMyApps, start: viewStart, profile: viewProfile, admin: viewAdmin, dm: viewDm },
+    renderHub, null, ['search', 'myapps']);
+}
+
+function viewStart() {
+  const body = document.getElementById('body');
+  body.innerHTML = `<div class="card"><h2>Создай свой клан</h2>
+    <div class="row"><input id="cn" placeholder="Название клана, например NOQX"><button id="cb">Создать</button></div></div>
+    <div class="card"><h2>Или вступи по приглашению</h2>
+    <div class="row"><input id="ic" placeholder="Код или ссылка приглашения"><button id="ib">Вступить</button></div>
+    <p class="err" id="ie">${esc(hubNote)}</p></div>`;
+  document.getElementById('cb').onclick = async () => {
+    const name = document.getElementById('cn').value.trim();
+    if (!name) return;
+    const { error } = await sb.from('clans').insert({ name, owner_id: user.id });
+    if (error) return msg('Не удалось создать клан: ' + error.message);
+    init();
+  };
+  document.getElementById('ib').onclick = async () => {
+    const raw = document.getElementById('ic').value.trim();
+    const code = (raw.match(/invite=([0-9a-f]+)/i) || [])[1] || raw;
+    if (!code) return;
+    const { error } = await sb.rpc('join_clan', { p_code: code });
+    if (error) return document.getElementById('ie').textContent = error.message;
+    init();
+  };
+}
+
+async function viewProfile() {
+  const body = document.getElementById('body');
+  const { data: pr, error } = await sb.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
+  if (error) return body.innerHTML = failBox(error);
+  const v = pr || {};
+  body.innerHTML = `<div class="card"><div class="brand">${avImg((user.user_metadata || {}).avatar_url)}<h2 style="margin:0">Мой игровой профиль</h2></div>
+    <p class="mut">Его увидят лидеры кланов, в которые ты подашь заявку. Аватарка подтягивается из Discord автоматически.</p><div class="grid">
+    ${fld('Игровой ник', `<input id="p_nick" value="${esc(v.nickname)}">`)}
+    ${fld('Фракция', `<select id="p_faction">${selOpts(FACTIONS, v.faction, '—')}</select>`)}
+    ${fld('Лучшая снаряга', `<select id="p_gear">${selOpts(GEAR, v.gear_level || 1)}</select>`)}
+    ${fld('Тип брони', `<select id="p_atype">${selOpts(ARMOR, v.armor_type, '—')}</select>`)}
+    ${fld('Броня (название)', `<input id="p_aname" value="${esc(v.armor_name)}">`)}
+    ${fld('Заточка брони (0–15)', `<input id="p_aench" type="number" min="0" max="15" value="${esc(v.armor_enchant)}">`)}
+    ${fld('Основное оружие', `<input id="p_weapon" value="${esc(v.weapon_main)}">`)}
+    ${fld('Заточка оружия (0–15)', `<input id="p_went" type="number" min="0" max="15" value="${esc(v.weapon_enchant)}">`)}
+    ${fld('K/D', `<input id="p_kd" type="number" step="0.01" min="0" max="99" value="${esc(v.kd)}">`)}
+    ${fld('Приведёнка (общая живучесть)', `<input id="p_ehp" type="number" min="0" value="${esc(v.ehp)}">`)}
+    ${fld('Скорость (скорость бега + передвижения)', `<input id="p_speed" type="number" step="0.01" min="0" value="${esc(v.speed)}">`)}
+    ${fld('Турниров в неделю могу играть', `<select id="p_tpw">${selOpts(WEEK, v.tournaments_per_week || 0)}</select>`)}
+    ${fld('Discord для связи', `<input id="p_contact" value="${esc(v.contact)}">`)}</div>
+    <label class="chk"><input type="checkbox" id="p_mic" ${v.mic ? 'checked' : ''}> Есть микрофон</label>
+    ${fld('Остальная снаряга (контейнеры, пистолет, снайперка…)', `<textarea id="p_notes">${esc(v.gear_notes)}</textarea>`)}
+    ${fld('О себе', `<textarea id="p_about">${esc(v.about)}</textarea>`)}
+    <button id="p_save">Сохранить профиль</button></div>`;
+  document.getElementById('p_save').onclick = async () => {
+    const row = { user_id: user.id, nickname: txt('p_nick'), faction: txt('p_faction'), gear_level: Number(val('p_gear')),
+      armor_type: txt('p_atype'), armor_name: txt('p_aname'), armor_enchant: numv('p_aench'), weapon_main: txt('p_weapon'),
+      weapon_enchant: numv('p_went'), kd: numv('p_kd'), ehp: numv('p_ehp'), speed: numv('p_speed'), tournaments_per_week: Number(val('p_tpw')),
+      mic: document.getElementById('p_mic').checked, contact: txt('p_contact'), gear_notes: txt('p_notes'),
+      about: txt('p_about'), avatar_url: (user.user_metadata || {}).avatar_url || null, updated_at: new Date().toISOString() };
+    if (!row.nickname) return alert('Укажи игровой ник');
+    const { error: e } = await sb.from('profiles').upsert(row);
+    if (e) return alert(e.message);
+    alert('Профиль сохранён');
+  };
+}
+
+const avImg = (u, cls) => u ? `<img class="av ${cls || ''}" referrerpolicy="no-referrer" src="${esc(u)}" alt="">` : '';
+const VSTATUS = { pending: 'на рассмотрении', approved: 'подтверждена', rejected: 'отклонена' };
+const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : null;
+const host = u => { try { return new URL(u).hostname; } catch (e) { return u; } };
+const linksHtml = ls => {
+  const a = (ls || []).filter(l => safeUrl(l.url)).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label || host(l.url))}</a>`);
+  return a.length ? `<p>${a.join(' · ')}</p>` : '';
+};
+const parseLinks = t => (t || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+  const i = l.indexOf('|'), url = (i < 0 ? l : l.slice(i + 1)).trim(), label = i < 0 ? '' : l.slice(0, i).trim();
+  return { label: label || host(url), url };
+});
+
+const F = { q: '', faction: '', goal: '', tier: '', tpw: '', gear: '', kd: '', ehp: '', speed: '', nomic: false, verified: false, init: false };
+
+async function viewSearch() {
+  const body = document.getElementById('body');
+  const [dir, pr, ap] = await Promise.all([
+    sb.from('clan_directory').select('*'),
+    sb.from('profiles').select('gear_level,kd,ehp,speed').eq('user_id', user.id).maybeSingle(),
+    sb.from('clan_applications').select('clan_id').eq('user_id', user.id).eq('status', 'pending')
+  ]);
+  const err = dir.error || ap.error;
+  if (err) return body.innerHTML = failBox(err);
+  if (!F.init && pr.data) { F.gear = String(pr.data.gear_level); if (pr.data.kd != null) F.kd = String(pr.data.kd); if (pr.data.ehp != null) F.ehp = String(pr.data.ehp); if (pr.data.speed != null) F.speed = String(pr.data.speed); F.init = true; }
+  const applied = new Set(ap.data.map(a => a.clan_id));
+  body.innerHTML = `<div class="card"><h2>Поиск клана</h2><div class="grid">
+    ${fld('Название', `<input data-f="q" value="${esc(F.q)}">`)}
+    ${fld('Фракция', `<select data-f="faction">${selOpts(FACTIONS, F.faction, 'Любая')}</select>`)}
+    ${fld('Цель клана', `<select data-f="goal">${selOpts(GOALS, F.goal, 'Любая')}</select>`)}
+    ${fld('Тир', `<select data-f="tier">${selOpts(TIERS, F.tier, 'Любой')}</select>`)}
+    ${fld('Турниров в неделю, не меньше', `<select data-f="tpw">${selOpts(WEEK, F.tpw, 'Любое')}</select>`)}
+    ${fld('Моя снаряга', `<select data-f="gear">${selOpts(GEAR, F.gear, 'Любая')}</select>`)}
+    ${fld('Мой K/D', `<input data-f="kd" type="number" step="0.01" min="0" value="${esc(F.kd)}">`)}
+    ${fld('Моя приведёнка', `<input data-f="ehp" type="number" min="0" value="${esc(F.ehp)}">`)}
+    ${fld('Моя скорость (скорость бега + передвижения)', `<input data-f="speed" type="number" step="0.01" min="0" value="${esc(F.speed)}">`)}</div>
+    <label class="chk"><input type="checkbox" data-f="nomic" ${F.nomic ? 'checked' : ''}> Без требования микрофона</label>
+    <label class="chk"><input type="checkbox" data-f="verified" ${F.verified ? 'checked' : ''}> Только проверенные</label></div>
+    <div id="res"></div>`;
+  const res = document.getElementById('res');
+  const ok = c => (!F.q || c.name.toLowerCase().includes(F.q.toLowerCase())) && (!F.faction || c.faction === F.faction) &&
+    (!F.goal || (c.goals || []).includes(F.goal)) && (!F.tier || c.tier === F.tier) &&
+    (F.tpw === '' || c.tournaments_per_week >= Number(F.tpw)) && (!F.gear || c.min_gear_level <= Number(F.gear)) &&
+    (F.kd === '' || !c.min_kd || c.min_kd <= Number(F.kd)) && (F.ehp === '' || !c.min_ehp || c.min_ehp <= Number(F.ehp)) && (F.speed === '' || !c.min_speed || c.min_speed <= Number(F.speed)) && (!F.nomic || !c.needs_mic) && (!F.verified || c.verified_tier);
+  const tr = t => t ? 'SABCDE'.indexOf(t) : 9;
+  const card = c => `<div class="card"><div class="brand">${c.avatar_url ? '<img class="av" src="' + esc(c.avatar_url) + '" alt="">' : ''}<h2 style="margin:0">${esc(c.name)}${c.verified_tier ? ' · тир ' + c.verified_tier + ' ✓ проверен' : (c.tier ? ' · тир ' + c.tier + ' (заявлен)' : '')}</h2></div>
+    <p class="mut">${FACTIONS[c.faction] || 'фракция не указана'} · в составе ${c.roster_size}${c.open_slots ? ', мест: ' + c.open_slots : ''}</p>
+    <p>${(c.goals || []).map(g => GOALS[g]).join(', ') || 'Цель не указана'}</p>
+    <p class="mut">Снаряга от: ${GEAR[c.min_gear_level]}${c.min_kd ? ' · K/D от ' + c.min_kd : ''}${c.min_ehp ? ' · приведёнка от ' + c.min_ehp : ''}${c.min_speed ? ' · скорость от ' + c.min_speed : ''}${c.needs_mic ? ' · нужен микрофон' : ''}</p>
+    <p class="mut">Турниров в неделю: ${c.tournaments_per_week} · потасовок: ${c.brawls_per_week}</p>
+    ${c.about ? `<p>${esc(c.about)}</p>` : ''}${c.contact ? `<p class="mut">Контакт: ${esc(c.contact)}</p>` : ''}${linksHtml(c.links)}
+    ${applied.has(c.id) ? '<p class="mut">Заявка отправлена</p>' : `<button data-apply="${c.id}">Подать заявку</button>`} ${c.owner_id && c.owner_id !== user.id ? `<button class="ghost" data-dmto="${c.owner_id}">Написать лидеру</button>` : ''}</div>`;
+  const paint = () => {
+    const list = dir.data.filter(ok).sort((a, b) => !a.verified_tier - !b.verified_tier || tr(a.tier) - tr(b.tier) || b.open_slots - a.open_slots);
+    res.innerHTML = list.length ? list.map(card).join('') : '<div class="card mut">Подходящих кланов нет. Попробуй ослабить фильтры.</div>';
+    res.querySelectorAll('[data-dmto]').forEach(b => b.onclick = () => openDm(b.dataset.dmto));
+    res.querySelectorAll('[data-apply]').forEach(b => b.onclick = async () => {
+      const m = prompt('Сообщение лидеру (необязательно):');
+      if (m === null) return;
+      const { error } = await sb.rpc('apply_to_clan', { cid: b.dataset.apply, msg: m });
+      if (error) return alert(error.message);
+      applied.add(b.dataset.apply); paint();
+    });
+  };
+  body.querySelectorAll('[data-f]').forEach(el => el.oninput = () => { F[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value; paint(); });
+  paint();
+}
+
+async function viewMyApps() {
+  const body = document.getElementById('body');
+  const { data, error } = await sb.from('clan_applications').select('id,clan_name,status,message,created_at')
+    .eq('user_id', user.id).order('created_at', { ascending: false });
+  if (error) return body.innerHTML = failBox(error);
+  if (!data.length) return body.innerHTML = '<div class="card mut">Заявок пока нет. Найди клан во вкладке «Поиск клана».</div>';
+  body.innerHTML = `<div class="card wrap"><h2>Мои заявки</h2><table>${data.map(a => `<tr><td>${esc(a.clan_name)}</td>
+    <td>${new Date(a.created_at).toLocaleDateString('ru-RU')}</td><td>${STATUS[a.status]}</td>
+    <td>${a.status === 'pending' ? `<button class="ghost" data-w="${a.id}">Отозвать</button>` : ''}</td></tr>`).join('')}</table></div>`;
+  body.querySelectorAll('[data-w]').forEach(b => b.onclick = async () => {
+    const { error: e } = await sb.from('clan_applications').update({ status: 'withdrawn' }).eq('id', b.dataset.w);
+    if (e) return alert(e.message);
+    viewMyApps();
+  });
+}
+
+async function viewApps() {
+  const body = document.getElementById('body');
+  const { data, error } = await sb.from('clan_applications').select('id,message,created_at,profiles(*)')
+    .eq('clan_id', clan.id).eq('status', 'pending').order('created_at');
+  if (error) return body.innerHTML = failBox(error);
+  if (!data.length) return body.innerHTML = '<div class="card mut">Новых заявок нет.</div>';
+  const lines = p => [
+    `${FACTIONS[p.faction] || 'фракция не указана'} · снаряга: ${GEAR[p.gear_level]}`,
+    `Броня: ${ARMOR[p.armor_type] || '—'}${p.armor_name ? ', ' + esc(p.armor_name) : ''}${p.armor_enchant != null ? ' +' + p.armor_enchant : ''}`,
+    `Оружие: ${p.weapon_main ? esc(p.weapon_main) : '—'}${p.weapon_enchant != null ? ' +' + p.weapon_enchant : ''}`,
+    `K/D: ${p.kd ?? '—'} · приведёнка: ${p.ehp ?? '—'} · скорость: ${p.speed ?? '—'} · турниров в неделю: ${p.tournaments_per_week} · ${p.mic ? 'с микрофоном' : 'без микрофона'}`
+  ].map(l => `<p class="mut">${l}</p>`).join('');
+  body.innerHTML = data.map(a => { const p = a.profiles || {}; return `<div class="card"><div class="brand">${avImg(p.avatar_url)}<h2 style="margin:0">${esc(p.nickname || 'Без профиля')}</h2></div>${lines(p)}
+    ${p.gear_notes ? `<p>${esc(p.gear_notes)}</p>` : ''}${p.about ? `<p>${esc(p.about)}</p>` : ''}
+    ${p.contact ? `<p class="mut">Discord: ${esc(p.contact)}</p>` : ''}${a.message ? `<p><b>Сообщение:</b> ${esc(a.message)}</p>` : ''}
+    <div class="row"><button data-acc="${a.id}">Принять</button><button class="ghost" data-rej="${a.id}">Отклонить</button><button class="ghost" data-dm="${p.user_id}">Написать</button></div></div>`; }).join('');
+  const decide = (attr, accept) => body.querySelectorAll(`[${attr}]`).forEach(b => b.onclick = async () => {
+    const { error: e } = await sb.rpc('decide_application', { aid: b.getAttribute(attr), accept });
+    if (e) return alert(e.message);
+    viewApps();
+  });
+  decide('data-acc', true); decide('data-rej', false);
+  body.querySelectorAll('[data-dm]').forEach(b => b.onclick = () => openDm(b.dataset.dm));
+}
+
+function setupAvatar() {
+  const file = document.getElementById('s_file');
+  file.onchange = async () => {
+    const f = file.files[0]; if (!f) return;
+    try {
+      const bmp = await createImageBitmap(f);
+      const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+      const side = Math.min(bmp.width, bmp.height);
+      cv.getContext('2d').drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, 256, 256);
+      const blob = await new Promise(r => cv.toBlob(r, 'image/webp', 0.9));
+      const path = clan.id + '/avatar.' + (blob.type === 'image/webp' ? 'webp' : 'png');
+      const up = await sb.storage.from('clan-avatars').upload(path, blob, { upsert: true, contentType: blob.type });
+      if (up.error) return alert(up.error.message);
+      const url = sb.storage.from('clan-avatars').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
+      const { error } = await sb.from('clans').update({ avatar_url: url }).eq('id', clan.id);
+      if (error) return alert(error.message);
+      clan.avatar_url = url; render();
+    } catch (e) { alert('Не удалось загрузить картинку: ' + e.message); }
+  };
+  const rm = document.getElementById('s_rmav');
+  if (rm) rm.onclick = async () => {
+    const { error } = await sb.from('clans').update({ avatar_url: null }).eq('id', clan.id);
+    if (error) return alert(error.message);
+    clan.avatar_url = null; render();
+  };
+}
+
+async function viewVerification() {
+  const box = document.getElementById('verif');
+  const [cl, vr] = await Promise.all([
+    sb.from('clans').select('verified_tier,verified_at').eq('id', clan.id).single(),
+    sb.from('clan_verifications').select('id,status,reviewer_note,created_at').eq('clan_id', clan.id)
+      .order('created_at', { ascending: false }).limit(1)
+  ]);
+  const err = cl.error || vr.error;
+  if (err) return box.innerHTML = failBox(err);
+  const c = cl.data, last = vr.data[0], pending = last && last.status === 'pending';
+  box.innerHTML = `<div class="card"><h2>Проверка клана</h2>
+    ${c.verified_tier ? `<p><b>✓ Клан проверен:</b> тир ${c.verified_tier}, ${new Date(c.verified_at).toLocaleDateString('ru-RU')}</p>` : '<p class="mut">Клан не проверен.</p>'}
+    ${last ? `<p class="mut">Последняя заявка: ${VSTATUS[last.status]}${last.reviewer_note ? '. ' + esc(last.reviewer_note) : ''}</p>` : ''}
+    ${pending ? '<p class="mut">Заявка на рассмотрении, ответ придёт в эту вкладку.</p>' : `<div class="grid">
+    ${fld('Тир, который нужно подтвердить', `<select id="v_tier">${selOpts(TIERS, '', 'Выбери')}</select>`)}
+    ${fld('Название клана в игре', `<input id="v_name" value="${esc(clan.name)}">`)}
+    ${fld('Скриншот списка лидеров с рейтингом клана', '<input id="v_file" type="file" accept="image/*">')}</div>
+    ${fld('Комментарий (необязательно)', '<textarea id="v_note"></textarea>')}
+    <button id="v_send">Отправить на проверку</button>`}</div>`;
+  const send = document.getElementById('v_send');
+  if (!send) return;
+  send.onclick = async () => {
+    const tier = val('v_tier'), f = document.getElementById('v_file').files[0];
+    if (!tier) return alert('Выбери тир');
+    if (!f) return alert('Прикрепи скриншот');
+    try {
+      const bmp = await createImageBitmap(f);
+      const k = Math.min(1, 1600 / bmp.width);
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+      cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+      const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.85));
+      const path = clan.id + '/' + Date.now() + '.jpg';
+      const up = await sb.storage.from('verification-proofs').upload(path, blob, { contentType: 'image/jpeg' });
+      if (up.error) return alert(up.error.message);
+      const { error } = await sb.rpc('request_verification', { p_cid: clan.id, p_tier: tier, p_ingame: txt('v_name'), p_proof: path, p_note: txt('v_note') });
+      if (error) return alert(error.message);
+      alert('Заявка отправлена');
+      viewSettings();
+    } catch (e) { alert('Не удалось отправить: ' + e.message); }
+  };
+}
+
+async function viewAdmin() {
+  const body = document.getElementById('body');
+  const { data, error } = await sb.from('clan_verifications').select('*').eq('status', 'pending').order('created_at');
+  if (error) return body.innerHTML = failBox(error);
+  if (!data.length) return body.innerHTML = '<div class="card mut">Заявок на проверку нет.</div>';
+  const urls = await Promise.all(data.map(v => sb.storage.from('verification-proofs').createSignedUrl(v.proof_path, 900)));
+  body.innerHTML = data.map((v, i) => { const u = urls[i].data && urls[i].data.signedUrl; return `<div class="card">
+    <h2>${esc(v.clan_name)} · тир ${v.requested_tier}</h2>
+    <p class="mut">Название в игре: ${esc(v.ingame_name || '—')}${v.note ? ' · ' + esc(v.note) : ''}</p>
+    ${u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer"><img src="${esc(u)}" alt="" style="max-width:100%;border-radius:8px"></a>` : '<p class="err">Скриншот не загрузился</p>'}
+    <div class="row" style="margin-top:8px"><select data-tier="${v.id}">${selOpts(TIERS, v.requested_tier)}</select>
+    <button data-ok="${v.id}">Подтвердить</button><button class="ghost" data-no="${v.id}">Отклонить</button></div></div>`; }).join('');
+  body.querySelectorAll('[data-ok]').forEach(b => b.onclick = async () => {
+    const tier = body.querySelector(`[data-tier="${b.dataset.ok}"]`).value;
+    const { error: e } = await sb.rpc('review_verification', { p_id: b.dataset.ok, p_approve: true, p_tier: tier, p_note: null });
+    if (e) return alert(e.message);
+    viewAdmin();
+  });
+  body.querySelectorAll('[data-no]').forEach(b => b.onclick = async () => {
+    const note = prompt('Причина отказа (увидит лидер клана):');
+    if (note === null) return;
+    const { error: e } = await sb.rpc('review_verification', { p_id: b.dataset.no, p_approve: false, p_tier: null, p_note: note });
+    if (e) return alert(e.message);
+    viewAdmin();
+  });
+}
+
+async function viewSettings() {
+  const body = document.getElementById('body');
+  const { data: c, error } = await sb.from('clans').select('*').eq('id', clan.id).single();
+  if (error) return body.innerHTML = failBox(error);
+  const goals = c.goals || [];
+  body.innerHTML = `<div class="card"><h2>Клан в поиске</h2>
+    <div class="row" style="align-items:center">${c.avatar_url ? `<img class="av" src="${esc(c.avatar_url)}" alt="">` : '<div class="av" style="background:var(--bd)"></div>'}
+    <input type="file" id="s_file" accept="image/png,image/jpeg,image/webp">${c.avatar_url ? '<button class="ghost" id="s_rmav">Убрать аватарку</button>' : ''}</div>
+    <label class="chk"><input type="checkbox" id="s_listed" ${c.listed ? 'checked' : ''}> Показывать клан в поиске и принимать заявки</label><div class="grid">
+    ${fld('Фракция', `<select id="s_faction">${selOpts(FACTIONS, c.faction, '—')}</select>`)}
+    ${fld('Тир (заявлен лидером)', `<select id="s_tier">${selOpts(TIERS, c.tier, '—')}</select>`)}
+    ${fld('Минимальная снаряга', `<select id="s_gear">${selOpts(GEAR, c.min_gear_level)}</select>`)}
+    ${fld('Минимальный K/D', `<input id="s_kd" type="number" step="0.01" min="0" value="${esc(c.min_kd)}">`)}
+    ${fld('Минимальная приведёнка', `<input id="s_ehp" type="number" min="0" value="${esc(c.min_ehp)}">`)}
+    ${fld('Минимальная скорость (бега + передвижения)', `<input id="s_speed" type="number" step="0.01" min="0" value="${esc(c.min_speed)}">`)}
+    ${fld('Турниров в неделю (чт–сб)', `<select id="s_tpw">${selOpts(WEEK, c.tournaments_per_week)}</select>`)}
+    ${fld('Потасовок в неделю (пн–ср)', `<select id="s_bpw">${selOpts(WEEK, c.brawls_per_week)}</select>`)}
+    ${fld('Свободных мест', `<input id="s_slots" type="number" min="0" value="${esc(c.open_slots)}">`)}
+    ${fld('Контакт (Discord)', `<input id="s_contact" value="${esc(c.contact)}">`)}
+    ${fld('Кто пишет в чате клана', `<select id="s_chat">${selOpts({ open: 'Все участники', announce: 'Только владелец и офицеры (объявления)' }, c.chat_mode)}</select>`)}</div>
+    <label class="chk"><input type="checkbox" id="s_mic" ${c.needs_mic ? 'checked' : ''}> Нужен микрофон</label>
+    <p class="mut" style="margin-top:8px">Цель клана</p>
+    <div>${Object.entries(GOALS).map(([k, v]) => `<label class="chk"><input type="checkbox" data-goal="${k}" ${goals.includes(k) ? 'checked' : ''}> ${esc(v)}</label>`).join('')}</div>
+    ${fld('Описание клана', `<textarea id="s_about" maxlength="1000">${esc(c.about)}</textarea>`)}
+    ${fld('Ссылки (по одной на строку: Название | https://…)', `<textarea id="s_links" placeholder="Discord | https://discord.gg/…">${esc((c.links || []).map(l => l.label + ' | ' + l.url).join('\n'))}</textarea>`)}
+    <p class="mut">Тир в игре зависит от рейтинга: S — топ-8 от 2000, A — выше 2000, B — 1750–1999, C — 1500–1749, D — 1250–1499, E — до 1249. Здесь он указывается лидером и не проверяется.</p>
+    <button id="s_save">Сохранить</button></div><div id="verif"></div>`;
+  setupAvatar();
+  viewVerification();
+  document.getElementById('s_save').onclick = async () => {
+    const upd = { listed: document.getElementById('s_listed').checked, faction: txt('s_faction'), tier: txt('s_tier'),
+      min_gear_level: Number(val('s_gear')), min_kd: numv('s_kd'), min_ehp: numv('s_ehp'), min_speed: numv('s_speed'), chat_mode: val('s_chat'), links: parseLinks(val('s_links')), tournaments_per_week: Number(val('s_tpw')),
+      brawls_per_week: Number(val('s_bpw')), open_slots: numv('s_slots') || 0, contact: txt('s_contact'),
+      needs_mic: document.getElementById('s_mic').checked, about: txt('s_about'),
+      goals: [...body.querySelectorAll('[data-goal]:checked')].map(x => x.dataset.goal) };
+    if (upd.listed && !upd.faction) return alert('Укажи фракцию клана');
+    if (upd.links.length > 6 || upd.links.some(l => !safeUrl(l.url))) return alert('Ссылок не больше 6, каждая должна начинаться с http:// или https://');
+    const { error: e } = await sb.from('clans').update(upd).eq('id', clan.id);
+    if (e) return alert(e.message);
+    alert('Сохранено');
+  };
+}
+
+let period = 30;
+const failBox = e => '<div class="card err">' + esc(e.message) + (/squads/i.test(e.message) ? '<br>Выполни squads.sql в Supabase → SQL Editor.' : '') + (/clan_invites|display_name|touch_member|join_clan|create_invite/i.test(e.message) ? '<br>Выполни invites.sql в Supabase → SQL Editor.' : '') + (/profiles|clan_directory|clan_applications|apply_to_clan|decide_application|min_gear_level/i.test(e.message) ? '<br>Выполни directory.sql в Supabase → SQL Editor.' : '') + (/avatar_url|min_speed|speed|links/i.test(e.message) ? '<br>Выполни clan_profile.sql в Supabase → SQL Editor.' : '') + (/verification|platform_admins|verified_tier|request_verification|review_verification/i.test(e.message) ? '<br>Выполни verification.sql в Supabase → SQL Editor.' : '') + (/clan_messages|direct_messages|user_cards|chat_mode|touch_card/i.test(e.message) ? '<br>Выполни chat.sql в Supabase → SQL Editor.' : '') + '</div>';
+let ratingSquad = '';
+
+async function viewRating() {
+  const body = document.getElementById('body');
+  const since = period ? new Date(Date.now() - period * 864e5).toISOString() : '1970-01-01T00:00:00Z';
+  const [ms, st, pl, sq] = await Promise.all([
+    sb.from('matches').select('id').eq('clan_id', clan.id).gte('played_at', since),
+    sb.from('match_stats').select('player_id,kills,deaths,damage,matches!inner(played_at)')
+      .eq('clan_id', clan.id).eq('confirmed', true).gte('matches.played_at', since),
+    sb.from('players').select('id,nick,squad_id').eq('clan_id', clan.id).eq('active', true),
+    sb.from('squads').select('id,name').eq('clan_id', clan.id).order('name')
+  ]);
+  const err = ms.error || st.error || pl.error || sq.error;
+  if (err) return body.innerHTML = failBox(err);
+  if (!pl.data.length) return body.innerHTML = '<div class="card mut">Пока пусто: добавь состав во вкладке «Состав».</div>';
+  const total = ms.data.length;
+  const sqName = Object.fromEntries(sq.data.map(x => [x.id, x.name]));
+  const agg = {};
+  pl.data.forEach(p => agg[p.id] = { nick: p.nick, sid: p.squad_id, sq: sqName[p.squad_id] || '—', n: 0, k: 0, d: 0, dm: 0, last: null });
+  st.data.forEach(s => {
+    const a = agg[s.player_id]; if (!a) return;
+    a.n++; a.k += s.kills || 0; a.d += s.deaths || 0; a.dm += s.damage || 0;
+    const t = s.matches.played_at; if (!a.last || t > a.last) a.last = t;
+  });
+  const list = Object.values(agg)
+    .filter(a => !ratingSquad || (ratingSquad === 'none' ? !a.sid : a.sid === ratingSquad))
+    .sort((x, y) => y.n - x.n || y.k - x.k);
+  const pb = (v, l) => `<button class="ghost ${period === v ? 'on' : ''}" data-p="${v}">${l}</button>`;
+  const fopt = (v, l) => `<option value="${v}" ${ratingSquad === v ? 'selected' : ''}>${esc(l)}</option>`;
+  const rows = list.map((a, i) => `<tr class="${a.n ? '' : 'dim'}"><td>${i + 1}</td><td>${esc(a.nick)}</td><td>${esc(a.sq)}</td>
+    <td>${a.n}</td><td>${total ? Math.round(a.n / total * 100) + '%' : '—'}</td>
+    <td>${a.k}</td><td>${a.d}</td><td>${a.d ? (a.k / a.d).toFixed(2) : '—'}</td><td>${a.dm}</td>
+    <td>${a.last ? new Date(a.last).toLocaleDateString('ru-RU') : 'не был'}</td></tr>`).join('');
+  body.innerHTML = `<div class="row">${pb(7, '7 дней')}${pb(30, '30 дней')}${pb(0, 'Всё время')}
+    <select id="fsq">${fopt('', 'Все отряды')}${sq.data.map(x => fopt(x.id, x.name)).join('')}${fopt('none', 'Без отряда')}</select></div>
+    <div class="card wrap"><h2>Рейтинг активности</h2>
+    <p class="mut">Боёв клана за период: ${total}. Явка — доля этих боёв, в которых игрок участвовал.</p>
+    <table><tr><th>#</th><th>Игрок</th><th>Отряд</th><th>Боёв</th><th>Явка</th><th>K</th><th>D</th><th>K/D</th><th>Урон</th><th>Последний бой</th></tr>${rows}</table></div>`;
+  body.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { period = Number(b.dataset.p); viewRating(); });
+  document.getElementById('fsq').onchange = e => { ratingSquad = e.target.value; viewRating(); };
+}
+
+async function viewHistory() {
+  const body = document.getElementById('body');
+  const { data, error } = await sb.from('matches').select('id,played_at,mode,result,match_stats(nick_raw)')
+    .eq('clan_id', clan.id).order('played_at', { ascending: false }).limit(50);
+  if (error) return body.innerHTML = `<div class="card err">${esc(error.message)}</div>`;
+  if (!data.length) return body.innerHTML = '<div class="card mut">Боёв пока нет.</div>';
+  const rows = data.map(m => `<tr><td>${new Date(m.played_at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</td>
+    <td>${esc(m.mode || '—')}</td><td>${esc(m.result || '—')}</td>
+    <td style="white-space:normal"><details><summary>${m.match_stats.length} игроков</summary>${m.match_stats.map(s => esc(s.nick_raw)).join(', ')}</details></td>
+    <td>${canEdit() ? '<button class="ghost" data-del="' + m.id + '">Удалить</button>' : ''}</td></tr>`).join('');
+  body.innerHTML = `<div class="card wrap"><h2>История боёв</h2><table>
+    <tr><th>Дата</th><th>Режим</th><th>Итог</th><th>Участники</th><th></th></tr>${rows}</table></div>`;
+  body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    if (!confirm('Удалить бой и всю его статистику?')) return;
+    const { error: e } = await sb.from('matches').delete().eq('id', b.dataset.del);
+    if (e) return alert(e.message);
+    viewHistory();
+  });
+}
+
+async function loadPlayers() {
+  const { data, error } = await sb.from('players').select('*').eq('clan_id', clan.id).order('nick');
+  if (error) throw error;
+  return data;
+}
+
+async function loadSquads() {
+  const { data, error } = await sb.from('squads').select('*').eq('clan_id', clan.id).order('name');
+  if (error) throw error;
+  return data;
+}
+
+async function viewRoster() {
+  const body = document.getElementById('body');
+  let players, squads;
+  try { [players, squads] = await Promise.all([loadPlayers(), loadSquads()]); }
+  catch (e) { return body.innerHTML = failBox(e); }
+  const opts = sel => '<option value="">— без отряда —</option>' +
+    squads.map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
+  const cnt = id => players.filter(p => p.active && p.squad_id === id).length;
+  const sqRows = squads.map(x => `<tr><td>${esc(x.name)}</td><td class="mut">${cnt(x.id)} игроков</td>
+    <td><button class="ghost" data-dsq="${x.id}">Удалить</button></td></tr>`).join('');
+  const rows = players.map(p => `<tr><td>${esc(p.nick)}</td>
+    <td><select data-sq="${p.id}">${opts(p.squad_id)}</select></td><td>${p.active ? 'в клане' : 'убран'}</td>
+    <td><button class="ghost" data-id="${p.id}" data-a="${p.active}">${p.active ? 'Убрать' : 'Вернуть'}</button></td></tr>`).join('');
+  body.innerHTML = `<div class="card wrap"><h2>Отряды</h2>
+    <div class="row"><input id="sqn" placeholder="Название отряда"><button id="sqa">Создать отряд</button></div>
+    ${squads.length ? `<table>${sqRows}</table>` : '<p class="mut">Отрядов пока нет.</p>'}</div>
+    <div class="card"><h2>Добавить игроков</h2>
+    <textarea id="nicks" placeholder="По одному нику на строку"></textarea>
+    <div class="row" style="margin-top:8px"><select id="nsq">${opts('')}</select><button id="add">Добавить</button></div></div>
+    <div class="card wrap"><h2>Состав (${players.filter(p => p.active).length})</h2><table>
+    <tr><th>Игрок</th><th>Отряд</th><th>Статус</th><th></th></tr>${rows}</table></div>`;
+  const again = async () => { const y = scrollY; await viewRoster(); scrollTo(0, y); };
+  document.getElementById('sqa').onclick = async () => {
+    const name = document.getElementById('sqn').value.trim();
+    if (!name) return;
+    const { error } = await sb.from('squads').insert({ clan_id: clan.id, name });
+    if (error) return alert(error.code === '23505' ? 'Отряд с таким названием уже есть' : error.message);
+    again();
+  };
+  body.querySelectorAll('[data-dsq]').forEach(b => b.onclick = async () => {
+    if (!confirm('Удалить отряд? Игроки останутся в клане без отряда.')) return;
+    const { error } = await sb.from('squads').delete().eq('id', b.dataset.dsq);
+    if (error) return alert(error.message);
+    again();
+  });
+  body.querySelectorAll('[data-sq]').forEach(sel => sel.onchange = async () => {
+    const { error } = await sb.from('players').update({ squad_id: sel.value || null }).eq('id', sel.dataset.sq);
+    if (error) return alert(error.message);
+    again();
+  });
+  document.getElementById('add').onclick = async () => {
+    const nicks = [...new Set(document.getElementById('nicks').value.split('\n').map(x => x.trim()).filter(Boolean))];
+    if (!nicks.length) return;
+    const sid = document.getElementById('nsq').value || null;
+    const { error } = await sb.from('players').upsert(nicks.map(nick => ({ clan_id: clan.id, nick, squad_id: sid })),
+      { onConflict: 'clan_id,nick', ignoreDuplicates: true });
+    if (error) return alert(error.message);
+    viewRoster();
+  };
+  body.querySelectorAll('[data-id]').forEach(b => b.onclick = async () => {
+    await sb.from('players').update({ active: b.dataset.a !== 'true' }).eq('id', b.dataset.id);
+    again();
+  });
+}
+
+async function viewMatch() {
+  const body = document.getElementById('body');
+  let players, squads;
+  try { [players, squads] = await Promise.all([loadPlayers(), loadSquads()]); }
+  catch (e) { return body.innerHTML = failBox(e); }
+  players = players.filter(p => p.active);
+  if (!players.length) return body.innerHTML = '<div class="card mut">Сначала добавь игроков во вкладке «Состав».</div>';
+  const sqName = Object.fromEntries(squads.map(x => [x.id, x.name]));
+  const key = p => sqName[p.squad_id] || '\uffff';
+  players.sort((a, b) => key(a).localeCompare(key(b), 'ru') || a.nick.localeCompare(b.nick, 'ru'));
+  const now = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const rows = players.map(p => `<tr data-pid="${p.id}" data-nick="${esc(p.nick)}" data-sq="${p.squad_id || ''}">
+    <td><input type="checkbox" class="at"></td><td>${esc(p.nick)}</td><td class="mut">${esc(sqName[p.squad_id] || '—')}</td>
+    <td><input type="number" min="0" class="k"></td><td><input type="number" min="0" class="d"></td>
+    <td><input type="number" min="0" class="dm"></td></tr>`).join('');
+  body.innerHTML = `<div class="card"><h2>Новый бой</h2>
+    <div class="row"><input type="datetime-local" id="dt" value="${now}">
+    <input id="mode" placeholder="Режим (необязательно)">
+    <select id="res"><option value="">Результат</option><option>победа</option><option>поражение</option></select>
+    <select id="msq"><option value="">Отметить весь отряд…</option>${squads.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>
+    <div class="wrap"><table><tr><th>Был</th><th>Игрок</th><th>Отряд</th><th>K</th><th>D</th><th>Урон</th></tr>${rows}</table></div>
+    <div class="row" style="margin-top:12px"><button id="save">Сохранить бой</button></div></div>`;
+  document.getElementById('msq').onchange = e => {
+    const id = e.target.value; if (!id) return;
+    body.querySelectorAll('tr[data-pid]').forEach(r => { if (r.dataset.sq === id) r.querySelector('.at').checked = true; });
+    e.target.value = '';
+  };
+  const num = el => el.value === '' ? null : Number(el.value);
+  document.getElementById('save').onclick = async () => {
+    const present = [...body.querySelectorAll('tr[data-pid]')].filter(r => r.querySelector('.at').checked);
+    if (!present.length) return alert('Отметь хотя бы одного игрока');
+    const { data: m, error } = await sb.from('matches').insert({
+      clan_id: clan.id, played_at: new Date(document.getElementById('dt').value).toISOString(),
+      mode: document.getElementById('mode').value || null, result: document.getElementById('res').value || null,
+      created_by: user.id }).select('id').single();
+    if (error) return alert(error.message);
+    const { error: e2 } = await sb.from('match_stats').insert(present.map(r => ({
+      match_id: m.id, clan_id: clan.id, player_id: r.dataset.pid, nick_raw: r.dataset.nick,
+      kills: num(r.querySelector('.k')), deaths: num(r.querySelector('.d')), damage: num(r.querySelector('.dm')),
+      confirmed: true })));
+    if (e2) return alert(e2.message);
+    tab = 'rating'; render();
+  };
+}
+
+async function viewTeam() {
+  const body = document.getElementById('body');
+  const owner = myRole === 'owner';
+  const [mb, iv] = await Promise.all([
+    sb.from('clan_members').select('user_id,role,display_name,avatar_url').eq('clan_id', clan.id),
+    owner ? sb.from('clan_invites').select('code,role,expires_at').eq('clan_id', clan.id)
+      .gt('expires_at', new Date().toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] })
+  ]);
+  const err = mb.error || iv.error;
+  if (err) return body.innerHTML = failBox(err);
+  const order = { owner: 0, officer: 1, viewer: 2 };
+  const members = mb.data.slice().sort((a, b) => order[a.role] - order[b.role]);
+  const rows = members.map(m => {
+    const mine = m.user_id === user.id;
+    const manage = owner && m.role !== 'owner';
+    const roleCell = manage
+      ? `<select data-role="${m.user_id}"><option value="officer" ${m.role === 'officer' ? 'selected' : ''}>офицер</option>
+         <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>участник</option></select>`
+      : ROLE[m.role];
+    return `<tr><td><span class="brand">${avImg(m.avatar_url, 'sm')}${esc(m.display_name || 'без имени')}${mine ? ' (ты)' : ''}</span></td><td>${roleCell}</td>
+      <td>${!mine ? `<button class="ghost" data-dm="${m.user_id}">Написать</button> ` : ''}${manage ? `<button class="ghost" data-rm="${m.user_id}">Убрать</button>` : ''}</td></tr>`;
+  }).join('');
+  const link = c => location.origin + location.pathname + '?invite=' + c;
+  const invRows = iv.data.map(i => `<tr><td style="white-space:normal"><input readonly style="width:100%" value="${esc(link(i.code))}"></td>
+    <td>${ROLE[i.role]}</td><td>до ${new Date(i.expires_at).toLocaleDateString('ru-RU')}</td>
+    <td><button data-copy="${esc(link(i.code))}">Копировать</button> <button class="ghost" data-delinv="${esc(i.code)}">Удалить</button></td></tr>`).join('');
+  body.innerHTML = `<div class="card wrap"><h2>Команда клана</h2>
+    <table><tr><th>Участник</th><th>Роль</th><th></th></tr>${rows}</table>
+    <p class="mut">Офицеры вносят бои и управляют составом, участники только смотрят рейтинг и историю.</p></div>
+    ${owner ? `<div class="card wrap"><h2>Приглашения</h2>
+    <div class="row"><select id="irole"><option value="officer">Офицер</option><option value="viewer">Участник</option></select>
+    <button id="inew">Создать ссылку</button></div>
+    ${iv.data.length ? `<table>${invRows}</table>` : '<p class="mut">Активных приглашений нет.</p>'}
+    <p class="mut">Ссылка действует 7 дней и подходит для нескольких человек. Чтобы по ней могли зайти другие, сайт должен быть доступен из интернета, а не только на твоём компьютере.</p></div>` : ''}`;
+  body.querySelectorAll('[data-dm]').forEach(b => b.onclick = () => openDm(b.dataset.dm));
+  if (!owner) return;
+  document.getElementById('inew').onclick = async () => {
+    const { error } = await sb.rpc('create_invite', { cid: clan.id, r: document.getElementById('irole').value });
+    if (error) return alert(error.message);
+    viewTeam();
+  };
+  body.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Скопировано'; } catch (e) { prompt('Скопируй ссылку:', b.dataset.copy); }
+  });
+  body.querySelectorAll('[data-delinv]').forEach(b => b.onclick = async () => {
+    await sb.from('clan_invites').delete().eq('code', b.dataset.delinv);
+    viewTeam();
+  });
+  body.querySelectorAll('[data-role]').forEach(sel => sel.onchange = async () => {
+    const { error } = await sb.from('clan_members').update({ role: sel.value }).eq('clan_id', clan.id).eq('user_id', sel.dataset.role);
+    if (error) alert(error.message);
+    viewTeam();
+  });
+  body.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => {
+    if (!confirm('Убрать участника из клана?')) return;
+    const { error } = await sb.from('clan_members').delete().eq('clan_id', clan.id).eq('user_id', b.dataset.rm);
+    if (error) return alert(error.message);
+    viewTeam();
+  });
+}
+
+const stopChan = () => { if (chan) { sb.removeChannel(chan); chan = null; } };
+const dmLabel = () => 'Сообщения' + (unread ? ' (' + unread + ')' : '');
+const fmtTime = iso => new Date(iso).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+
+function setUnread() {
+  document.querySelectorAll('.dmcount').forEach(el => { el.textContent = unread || ''; });
+}
+
+async function refreshUnread() {
+  const { count } = await sb.from('direct_messages').select('id', { count: 'exact', head: true }).eq('recipient_id', user.id).is('read_at', null);
+  unread = count || 0;
+}
+
+function startDmSub() {
+  if (dmChanUser === user.id) return;
+  if (dmChan) sb.removeChannel(dmChan);
+  dmChanUser = user.id;
+  dmChan = sb.channel('dm-' + user.id).on('postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: 'recipient_id=eq.' + user.id },
+    pl => { if (dmListener && dmListener(pl.new)) return; unread++; setUnread(); }).subscribe();
+}
+
+function openDm(uid) {
+  dmPartner = uid; tab = 'dm';
+  if (clan) render(); else renderHub();
+}
+
+async function viewChat() {
+  const body = document.getElementById('body');
+  const q = () => sb.from('clan_messages').select('id,body,created_at,user_id,user_cards(name,avatar_url)')
+    .eq('clan_id', clan.id).order('created_at', { ascending: false }).limit(100);
+  const [r, cm] = await Promise.all([q(), sb.from('clans').select('chat_mode').eq('id', clan.id).single()]);
+  if (r.error) return body.innerHTML = failBox(r.error);
+  const canPost = canEdit() || (cm.data && cm.data.chat_mode !== 'announce');
+  body.innerHTML = `<div class="card"><h2>Чат клана</h2>
+    ${canPost ? '' : '<p class="mut">В этом чате пишут только владелец и офицеры, остальные читают объявления.</p>'}
+    <div class="log" id="log"></div>
+    ${canPost ? '<div class="row"><textarea id="cmsg" rows="2" placeholder="Сообщение (Enter — отправить, Shift+Enter — новая строка)"></textarea><button id="csend">Отправить</button></div>' : ''}</div>`;
+  const log = document.getElementById('log');
+  const paint = list => {
+    log.innerHTML = list.length ? list.map(m => `<div class="msg"><div class="brand">${avImg(m.user_cards && m.user_cards.avatar_url, 'sm')}
+      <b>${esc(m.user_cards ? m.user_cards.name : 'игрок')}</b><span class="mut">${fmtTime(m.created_at)}</span>
+      ${m.user_id === user.id || canEdit() ? `<button class="ghost x" data-delmsg="${m.id}">✕</button>` : ''}</div><p>${esc(m.body)}</p></div>`).join('')
+      : '<p class="mut">Сообщений пока нет.</p>';
+    log.scrollTop = log.scrollHeight;
+    log.querySelectorAll('[data-delmsg]').forEach(b => b.onclick = async () => {
+      const { error } = await sb.from('clan_messages').delete().eq('id', b.dataset.delmsg);
+      if (error) return alert(error.message);
+      load();
+    });
+  };
+  const load = async () => { const { data } = await q(); if (data) paint(data.slice().reverse()); };
+  paint(r.data.slice().reverse());
+  chan = sb.channel('clan-' + clan.id).on('postgres_changes',
+    { event: 'INSERT', schema: 'public', table: 'clan_messages', filter: 'clan_id=eq.' + clan.id }, load).subscribe();
+  if (!canPost) return;
+  const send = async () => {
+    const t = val('cmsg').trim(); if (!t) return;
+    const { error } = await sb.from('clan_messages').insert({ clan_id: clan.id, user_id: user.id, body: t });
+    if (error) return alert(error.message);
+    document.getElementById('cmsg').value = '';
+    load();
+  };
+  document.getElementById('csend').onclick = send;
+  document.getElementById('cmsg').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
+}
+
+async function viewDm() {
+  const body = document.getElementById('body');
+  if (dmPartner) return viewThread(body);
+  const { data, error } = await sb.from('direct_messages').select('id,sender_id,recipient_id,body,created_at,read_at')
+    .order('created_at', { ascending: false }).limit(300);
+  if (error) return body.innerHTML = failBox(error);
+  const conv = new Map();
+  data.forEach(m => {
+    const pid = m.sender_id === user.id ? m.recipient_id : m.sender_id;
+    const c = conv.get(pid) || { last: m, n: 0 };
+    if (m.recipient_id === user.id && !m.read_at) c.n++;
+    conv.set(pid, c);
+  });
+  if (!conv.size) return body.innerHTML = '<div class="card mut">Сообщений пока нет. Напиши участнику из вкладки «Команда», автору заявки или лидеру клана из поиска.</div>';
+  const { data: cards } = await sb.from('user_cards').select('*').in('user_id', [...conv.keys()]);
+  const byId = Object.fromEntries((cards || []).map(c => [c.user_id, c]));
+  body.innerHTML = `<div class="card"><h2>Личные сообщения</h2>${[...conv.entries()].map(([pid, c]) => {
+    const u = byId[pid] || {};
+    return `<div class="conv" data-p="${pid}">${avImg(u.avatar_url)}<div style="flex:1;min-width:0"><b>${esc(u.name || 'Пользователь')}</b>
+      <div class="mut" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.last.body)}</div></div>
+      ${c.n ? `<span class="badge">${c.n}</span>` : ''}</div>`; }).join('')}</div>`;
+  body.querySelectorAll('[data-p]').forEach(el => el.onclick = () => { dmPartner = el.dataset.p; viewDm(); });
+}
+
+async function viewThread(body) {
+  const pid = dmPartner;
+  const q = () => sb.from('direct_messages').select('*')
+    .or(`and(sender_id.eq.${user.id},recipient_id.eq.${pid}),and(sender_id.eq.${pid},recipient_id.eq.${user.id})`)
+    .order('created_at', { ascending: false }).limit(100);
+  const [cr, mr] = await Promise.all([sb.from('user_cards').select('*').eq('user_id', pid).maybeSingle(), q()]);
+  if (mr.error) return body.innerHTML = failBox(mr.error);
+  const card = cr.data;
+  body.innerHTML = `<div class="card"><div class="row" style="align-items:center"><button class="ghost" id="dback">← Все диалоги</button>
+    <span class="brand">${avImg(card && card.avatar_url, 'sm')}<b>${esc(card ? card.name : 'Пользователь не найден')}</b></span></div>
+    <div class="log" id="log"></div>
+    ${card ? '<div class="row"><textarea id="dmsg" rows="2" placeholder="Сообщение (Enter — отправить)"></textarea><button id="dsend">Отправить</button></div>' : ''}</div>`;
+  const log = document.getElementById('log');
+  const paint = list => {
+    log.innerHTML = list.length ? list.map(m => `<div class="msg"><span class="mut">${m.sender_id === user.id ? 'Ты' : esc(card ? card.name : '')} · ${fmtTime(m.created_at)}</span><p>${esc(m.body)}</p></div>`).join('')
+      : '<p class="mut">Начни диалог.</p>';
+    log.scrollTop = log.scrollHeight;
+  };
+  const markRead = async list => {
+    const ids = list.filter(m => m.recipient_id === user.id && !m.read_at).map(m => m.id);
+    if (!ids.length) return;
+    await sb.from('direct_messages').update({ read_at: new Date().toISOString() }).in('id', ids);
+    await refreshUnread(); setUnread();
+  };
+  const load = async () => { const { data } = await q(); if (!data) return; paint(data.slice().reverse()); markRead(data); };
+  paint(mr.data.slice().reverse()); markRead(mr.data);
+  dmListener = row => { if (row.sender_id !== pid) return false; load(); return true; };
+  document.getElementById('dback').onclick = () => { dmPartner = null; viewDm(); };
+  if (!card) return;
+  const send = async () => {
+    const t = val('dmsg').trim(); if (!t) return;
+    const { error } = await sb.from('direct_messages').insert({ sender_id: user.id, recipient_id: pid, body: t });
+    if (error) return alert(error.message);
+    document.getElementById('dmsg').value = '';
+    load();
+  };
+  document.getElementById('dsend').onclick = send;
+  document.getElementById('dmsg').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
+}
+
+sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_OUT') showLogin(); });
+init();
+</script>
+</body>
+</html>
