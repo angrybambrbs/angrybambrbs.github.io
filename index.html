@@ -124,6 +124,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const app = document.getElementById('app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let user = null, clan = null, tab = 'rating';
+let clanView = false;
 
 function msg(text) { app.innerHTML = `<div class="card err">${esc(text)}</div>`; }
 
@@ -265,9 +266,10 @@ function render() {
   if (canEdit()) tabs.push(['roster', 'Состав'], ['apps', 'Заявки']);
   tabs.push(['events', 'События'], ['chat', 'Чат клана'], ['team', 'Команда']);
   if (myRole === 'owner') tabs.push(['settings', 'Настройки клана']);
-  tabs.push(['catalog', 'Каталог снаряжения'], ['dm', 'Сообщения'], ['profile', 'Профиль']);
+  tabs.push(['search', 'Поиск кланов'], ['catalog', 'Каталог снаряжения'], ['dm', 'Сообщения'], ['profile', 'Профиль']);
   if (isAdmin) tabs.push(['admin', 'Модерация']);
   if (tab !== 'player' && !tabs.some(t => t[0] === tab)) tab = 'rating';
+  clanView = true;
   shell(clan.name, tabs, { rating: viewRating, match: viewMatch, history: viewHistory, roster: viewRoster, team: viewTeam, apps: viewApps,
     settings: viewSettings, clan: viewClanTab, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm, events: viewEvents, player: viewPlayer, catalog: viewCatalog }, render, clan.avatar_url, ['rating', 'match', 'events', 'chat']);
 }
@@ -276,6 +278,7 @@ function renderHub() {
   const tabs = [['search', 'Поиск клана'], ['myapps', 'Мои заявки'], ['start', 'Создать клан'], ['catalog', 'Каталог снаряжения'], ['dm', 'Сообщения'], ['profile', 'Профиль']];
   if (isAdmin) tabs.push(['admin', 'Модерация']);
   if (!tabs.some(t => t[0] === tab)) tab = 'search';
+  clanView = false;
   shell('ClanPulse', tabs, { search: viewSearch, myapps: viewMyApps, start: viewStart, profile: viewProfile, admin: viewAdmin, dm: viewDm, catalog: viewCatalog },
     renderHub, null, ['search', 'myapps']);
 }
@@ -478,7 +481,7 @@ function viewClanProfile(body, c, prof, applied) {
   const dm = document.getElementById('dmlead');
   if (dm) dm.onclick = () => openDm(c.owner_id);
   const tp = document.getElementById('toprof');
-  if (tp) tp.onclick = () => { tab = 'profile'; renderHub(); };
+  if (tp) tp.onclick = () => { tab = 'profile'; clanView ? render() : renderHub(); };
   const ap = document.getElementById('apply');
   if (ap) ap.onclick = async () => {
     const { error } = await sb.rpc('apply_to_clan', { cid: c.id, msg: val('amsg') });
@@ -543,7 +546,7 @@ function setupAvatar() {
       const blob = await new Promise(r => cv.toBlob(r, 'image/webp', 0.9));
       const path = clan.id + '/avatar.' + (blob.type === 'image/webp' ? 'webp' : 'png');
       const up = await sb.storage.from('clan-avatars').upload(path, blob, { upsert: true, contentType: blob.type });
-      if (up.error) return alert(up.error.message);
+      if (up.error) return alert('Не удалось загрузить аватарку: ' + up.error.message + '\n\nЕсли ошибка про row-level security — нужны политики storage в Supabase.');
       const url = sb.storage.from('clan-avatars').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
       const { error } = await sb.from('clans').update({ avatar_url: url }).eq('id', clan.id);
       if (error) return alert(error.message);
@@ -665,8 +668,9 @@ async function viewSettings() {
       goals: [...body.querySelectorAll('[data-goal]:checked')].map(x => x.dataset.goal) };
     if (upd.listed && !upd.faction) return alert('Укажи фракцию клана');
     if (upd.links.length > 6 || upd.links.some(l => !safeUrl(l.url))) return alert('Ссылок не больше 6, каждая должна начинаться с http:// или https://');
-    const { error: e } = await sb.from('clans').update(upd).eq('id', clan.id);
-    if (e) return alert(e.message);
+    const { data: saved, error: e } = await sb.from('clans').update(upd).eq('id', clan.id).select().single();
+    if (e) return alert('Не удалось сохранить: ' + e.message);
+    Object.assign(clan, saved);
     alert('Сохранено');
   };
 }
@@ -779,7 +783,7 @@ const CAT_GROUPS = { armor: ['Броня', c => c.startsWith('armor/')], weapon:
 let CATALOG = null;
 async function loadCatalog() {
   if (CATALOG) return CATALOG;
-  const r = await fetch('catalog.json');
+  const r = await fetch('catalog.json?ts=' + Date.now());
   if (!r.ok) throw new Error('Каталог не загрузился (файл catalog.json должен лежать рядом с index.html)');
   CATALOG = await r.json();
   return CATALOG;
