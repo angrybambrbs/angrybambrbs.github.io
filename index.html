@@ -706,6 +706,7 @@ function manualMeta() {
 const ICON_BASE = 'https://raw.githubusercontent.com/EXBO-Studio/stalzone-database/main/ru';
 const iconUrl = p => /^\/icons\/[\w\-\/]+\.png$/.test(p || '') ? ICON_BASE + p : null;
 const iconImg = (p, cls) => { const u = iconUrl(p); return u ? `<img class="gi ${cls || ''}" loading="lazy" src="${esc(u)}" alt="">` : `<div class="gi ph ${cls || ''}">?</div>`; };
+const avImg = (u, cls) => u ? `<img class="av ${cls || ''}" referrerpolicy="no-referrer" src="${esc(u)}" alt="">` : '';
 const RANKS = { NEWBIE: 'Новичок', STALKER: 'Сталкер', VETERAN: 'Ветеран', MASTER: 'Мастер', LEGEND: 'Легенда' };
 const RANK_ORDER = ['LEGEND', 'MASTER', 'VETERAN', 'STALKER', 'NEWBIE', ''];
 const CAT_RU = { 'armor/combat': 'Боевая броня', 'armor/combined': 'Комбинированная броня', 'armor/scientist': 'Научная броня', 'armor/clothes': 'Одежда', 'armor/device': 'Устройства',
