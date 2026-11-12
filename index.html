@@ -123,7 +123,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0kJv9lAMAvBYwPQW23Qwyg_R_MkNBAe';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const app = document.getElementById('app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let user = null, clan = null, tab = 'rating';
+let user = null, clan = null, tab = (() => { try { return localStorage.getItem('cp_tab') || 'rating'; } catch (e) { return 'rating'; } })();
 let clanView = false;
 
 function msg(text) { app.innerHTML = `<div class="card err">${esc(text)}</div>`; }
@@ -239,7 +239,7 @@ function shell(title, tabs, views, again, icon, primary) {
   document.getElementById('menu').onclick = () => toggle(true);
   scrim.onclick = () => toggle(false);
   document.getElementById('out').onclick = async () => { await sb.auth.signOut(); init(); };
-  app.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; again(); });
+  app.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; try { localStorage.setItem('cp_tab', tab); } catch (e) { /* приватный режим */ } again(); });
   const qbtn = document.getElementById('qbtn');
   if (qbtn) qbtn.onclick = () => {
     const sc = document.createElement('div'); sc.className = 'scrim open'; sc.style.zIndex = '40';
