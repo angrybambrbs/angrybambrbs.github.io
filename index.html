@@ -12,7 +12,8 @@ main{max-width:880px;margin:0 auto;padding:16px}
 h1{font-size:20px;margin:0}h2{font-size:17px;margin:0 0 12px}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:16px}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:16px}
-.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px}
+.tabs button{flex:none}
 button,input,select,textarea{font:inherit;color:var(--tx);background:#14121d;border:1px solid var(--bd);border-radius:8px;padding:8px 12px}
 button{cursor:pointer;background:var(--ac);border-color:var(--ac);color:#fff}
 button.ghost{background:transparent;border-color:var(--bd);color:var(--mut)}
@@ -64,6 +65,46 @@ button:disabled{opacity:.6;cursor:default}
 .navi.on{background:#14121d;color:var(--ac)}
 .grp{margin:14px 0 6px;font-size:13px}
 #cmsg,#dmsg{min-height:56px}
+.sbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.sbar .sq{flex:1 1 180px;min-width:0}
+.sbasic{flex-basis:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sbasic select{width:100%;min-width:0;padding:8px 6px;font-size:13px}
+.clist{display:grid;gap:10px}
+.crow{display:flex;gap:12px;align-items:center;cursor:pointer;margin:0}
+.crow .meta{flex:1;min-width:0}
+.rtitle{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:2px}
+.chip{display:inline-block;border:1px solid var(--bd);border-radius:999px;padding:2px 10px;font-size:12px;color:var(--mut);margin:0 6px 6px 0}
+.chip.ok{border-color:var(--ac);color:var(--tx)}
+.av.ph{display:flex;align-items:center;justify-content:center;background:var(--bd);color:var(--mut);font-weight:600}
+.av.lg{width:72px;height:72px;border-radius:14px;font-size:22px}
+.okc{color:var(--ac)}
+.gsets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+button.sm{padding:4px 10px;font-size:13px}
+.gcard{background:#14121d;border:1px solid var(--bd);border-radius:12px;padding:12px;min-width:0}
+.gcard .gtile{background:transparent;border:0;padding:0}
+.cstats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}
+.cs{background:#0e0c14;border:1px solid var(--bd);border-radius:8px;padding:6px 8px;min-width:0}
+.cs span{display:block;color:var(--mut);font-size:11px}
+.cs b{font-size:14px}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.slot{position:relative;border:1px dashed var(--bd);border-radius:8px;min-height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;text-align:center;font-size:11px;word-break:break-word}
+.slot.edit{cursor:pointer}
+.slot .x{position:absolute;top:2px;right:2px;padding:0 6px;font-size:12px;line-height:18px}
+.gi.sm{width:34px;height:34px}
+.gtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.gtile{display:flex;gap:10px;align-items:center;background:#14121d;border:1px solid var(--bd);border-radius:12px;padding:10px;min-width:0}
+.gi{width:52px;height:52px;object-fit:contain;flex:none;border-radius:8px;background:#0e0c14}
+.gi.ph{display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.prow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.stat{background:#14121d;border:1px solid var(--bd);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:20px}
+.stat span{color:var(--mut);font-size:12px}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;max-height:88vh;overflow-y:auto;background:var(--card);border:1px solid var(--bd);border-radius:16px 16px 0 0;padding:16px;transform:translateY(105%);transition:transform .2s;z-index:30}
+.sheet.open{transform:none}
+.sheet h3{margin:14px 0 8px;font-size:14px;color:var(--mut);font-weight:500}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.sfoot{position:sticky;bottom:-16px;background:var(--card);padding:12px 0 0;display:flex;gap:8px;justify-content:space-between}
 a{color:var(--ac)}
 .mut{color:var(--mut)}.err{color:var(--bad)}
 </style>
@@ -201,20 +242,20 @@ function render() {
   if (canEdit()) tabs.push(['match', 'Новый бой']);
   tabs.push(['history', 'История']);
   if (canEdit()) tabs.push(['roster', 'Состав'], ['apps', 'Заявки']);
-  tabs.push(['chat', 'Чат клана'], ['team', 'Команда']);
+  tabs.push(['events', 'События'], ['chat', 'Чат клана'], ['team', 'Команда']);
   if (myRole === 'owner') tabs.push(['settings', 'Клан в поиске']);
-  tabs.push(['dm', 'Сообщения'], ['profile', 'Профиль']);
+  tabs.push(['catalog', 'Каталог снаряжения'], ['dm', 'Сообщения'], ['profile', 'Профиль']);
   if (isAdmin) tabs.push(['admin', 'Модерация']);
-  if (!tabs.some(t => t[0] === tab)) tab = 'rating';
+  if (tab !== 'player' && !tabs.some(t => t[0] === tab)) tab = 'rating';
   shell(clan.name, tabs, { rating: viewRating, match: viewMatch, history: viewHistory, roster: viewRoster, team: viewTeam, apps: viewApps,
-    settings: viewSettings, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm }, render, clan.avatar_url, ['rating', 'match', 'chat']);
+    settings: viewSettings, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm, events: viewEvents, player: viewPlayer, catalog: viewCatalog }, render, clan.avatar_url, ['rating', 'match', 'events', 'chat']);
 }
 
 function renderHub() {
-  const tabs = [['search', 'Поиск клана'], ['myapps', 'Мои заявки'], ['start', 'Создать клан'], ['dm', 'Сообщения'], ['profile', 'Профиль']];
+  const tabs = [['search', 'Поиск клана'], ['myapps', 'Мои заявки'], ['start', 'Создать клан'], ['catalog', 'Каталог снаряжения'], ['dm', 'Сообщения'], ['profile', 'Профиль']];
   if (isAdmin) tabs.push(['admin', 'Модерация']);
   if (!tabs.some(t => t[0] === tab)) tab = 'search';
-  shell('ClanPulse', tabs, { search: viewSearch, myapps: viewMyApps, start: viewStart, profile: viewProfile, admin: viewAdmin, dm: viewDm },
+  shell('ClanPulse', tabs, { search: viewSearch, myapps: viewMyApps, start: viewStart, profile: viewProfile, admin: viewAdmin, dm: viewDm, catalog: viewCatalog },
     renderHub, null, ['search', 'myapps']);
 }
 
@@ -244,32 +285,37 @@ function viewStart() {
 
 async function viewProfile() {
   const body = document.getElementById('body');
-  const { data: pr, error } = await sb.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-  if (error) return body.innerHTML = failBox(error);
-  const v = pr || {};
+  const [pr, cat] = await Promise.all([sb.from('profiles').select('*').eq('user_id', user.id).maybeSingle(), loadCatalog().catch(() => null)]);
+  if (pr.error) return body.innerHTML = failBox(pr.error);
+  const v = pr.data || {};
+  const G = gearOf(v);
   body.innerHTML = `<div class="card"><div class="brand">${avImg((user.user_metadata || {}).avatar_url)}<h2 style="margin:0">Мой игровой профиль</h2></div>
-    <p class="mut">Его увидят лидеры кланов, в которые ты подашь заявку. Аватарка подтягивается из Discord автоматически.</p><div class="grid">
+    <p class="mut">Его увидят лидеры кланов, в которые ты подашь заявку, и участники твоего клана. Аватарка подтягивается из Discord автоматически.</p><div class="grid">
     ${fld('Игровой ник', `<input id="p_nick" value="${esc(v.nickname)}">`)}
     ${fld('Фракция', `<select id="p_faction">${selOpts(FACTIONS, v.faction, '—')}</select>`)}
     ${fld('Лучшая снаряга', `<select id="p_gear">${selOpts(GEAR, v.gear_level || 1)}</select>`)}
-    ${fld('Тип брони', `<select id="p_atype">${selOpts(ARMOR, v.armor_type, '—')}</select>`)}
-    ${fld('Броня (название)', `<input id="p_aname" value="${esc(v.armor_name)}">`)}
-    ${fld('Заточка брони (0–15)', `<input id="p_aench" type="number" min="0" max="15" value="${esc(v.armor_enchant)}">`)}
-    ${fld('Основное оружие', `<input id="p_weapon" value="${esc(v.weapon_main)}">`)}
-    ${fld('Заточка оружия (0–15)', `<input id="p_went" type="number" min="0" max="15" value="${esc(v.weapon_enchant)}">`)}
     ${fld('K/D', `<input id="p_kd" type="number" step="0.01" min="0" max="99" value="${esc(v.kd)}">`)}
     ${fld('Приведёнка (общая живучесть)', `<input id="p_ehp" type="number" min="0" value="${esc(v.ehp)}">`)}
     ${fld('Скорость (скорость бега + передвижения)', `<input id="p_speed" type="number" step="0.01" min="0" value="${esc(v.speed)}">`)}
     ${fld('Турниров в неделю могу играть', `<select id="p_tpw">${selOpts(WEEK, v.tournaments_per_week || 0)}</select>`)}
     ${fld('Discord для связи', `<input id="p_contact" value="${esc(v.contact)}">`)}</div>
     <label class="chk"><input type="checkbox" id="p_mic" ${v.mic ? 'checked' : ''}> Есть микрофон</label>
-    ${fld('Остальная снаряга (контейнеры, пистолет, снайперка…)', `<textarea id="p_notes">${esc(v.gear_notes)}</textarea>`)}
+    <h2 style="margin:14px 0 4px">Снаряга</h2>
+    <p class="mut" style="margin:0 0 8px">В каждой карточке можно хранить до 6 сетов и переключать их цифрами. Первый сет считается основным.</p>
+    <div id="gear_edit"></div>
+    ${fld('Заметки о снаряге', `<textarea id="p_notes">${esc(v.gear_notes)}</textarea>`)}
     ${fld('О себе', `<textarea id="p_about">${esc(v.about)}</textarea>`)}
     <button id="p_save">Сохранить профиль</button></div>`;
+  gearEditor(document.getElementById('gear_edit'), G, byIdOf(cat));
   document.getElementById('p_save').onclick = async () => {
+    const clean = k => G[k].filter(x => x.n).slice(0, 6).map(x => ({ n: x.n, p: x.p || null, e: x.e ?? null, t: x.t || null, id: x.id || null,
+      b: k === 'container' ? (x.b || []).slice(0, 12).map(a => a && a.n ? { n: a.n, p: a.p || null } : null) : undefined }));
+    const out = { armor: clean('armor'), weapon: clean('weapon'), secondary: clean('secondary'), container: clean('container') };
+    const a0 = out.armor[0] || {}, w0 = out.weapon[0] || {};
     const row = { user_id: user.id, nickname: txt('p_nick'), faction: txt('p_faction'), gear_level: Number(val('p_gear')),
-      armor_type: txt('p_atype'), armor_name: txt('p_aname'), armor_enchant: numv('p_aench'), weapon_main: txt('p_weapon'),
-      weapon_enchant: numv('p_went'), kd: numv('p_kd'), ehp: numv('p_ehp'), speed: numv('p_speed'), tournaments_per_week: Number(val('p_tpw')),
+      armor_type: a0.t || null, armor_name: a0.n || null, armor_icon: a0.p || null, armor_enchant: a0.e ?? null,
+      weapon_main: w0.n || null, weapon_icon: w0.p || null, weapon_enchant: w0.e ?? null, gear: out,
+      kd: numv('p_kd'), ehp: numv('p_ehp'), speed: numv('p_speed'), tournaments_per_week: Number(val('p_tpw')),
       mic: document.getElementById('p_mic').checked, contact: txt('p_contact'), gear_notes: txt('p_notes'),
       about: txt('p_about'), avatar_url: (user.user_metadata || {}).avatar_url || null, updated_at: new Date().toISOString() };
     if (!row.nickname) return alert('Укажи игровой ник');
@@ -279,72 +325,145 @@ async function viewProfile() {
   };
 }
 
-const avImg = (u, cls) => u ? `<img class="av ${cls || ''}" referrerpolicy="no-referrer" src="${esc(u)}" alt="">` : '';
-const VSTATUS = { pending: 'на рассмотрении', approved: 'подтверждена', rejected: 'отклонена' };
-const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : null;
-const host = u => { try { return new URL(u).hostname; } catch (e) { return u; } };
-const linksHtml = ls => {
-  const a = (ls || []).filter(l => safeUrl(l.url)).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label || host(l.url))}</a>`);
-  return a.length ? `<p>${a.join(' · ')}</p>` : '';
-};
-const parseLinks = t => (t || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
-  const i = l.indexOf('|'), url = (i < 0 ? l : l.slice(i + 1)).trim(), label = i < 0 ? '' : l.slice(0, i).trim();
-  return { label: label || host(url), url };
-});
+const F0 = { q: '', tier: '', tpw: '', faction: '', goal: '', bpw: '', gear: '', kd: '', ehp: '', speed: '', nomic: false, verified: false, slots: false, sort: 'tier' };
+const F = Object.assign({ init: false }, F0);
+let openClan = null;
+const TIER_OPTS = { S: 'Только S', A: 'A и выше', B: 'B и выше', C: 'C и выше', D: 'D и выше', E: 'E и выше' };
+const TPW_OPTS = { 1: 'Турниры: от 1', 2: 'Турниры: от 2', 3: 'Турниры: 3' };
+const BPW_OPTS = { 1: 'От 1 в неделю', 2: 'От 2 в неделю', 3: '3 в неделю' };
+const SORTS = { tier: 'Сначала сильные (тир)', slots: 'Больше свободных мест', size: 'Больше участников' };
+const tierRank = t => t ? 'SABCDE'.indexOf(t) : 9;
+const tierBadge = c => c.verified_tier ? `<span class="chip ok">Тир ${c.verified_tier} ✓ проверен</span>`
+  : (c.tier ? `<span class="chip">Тир ${c.tier} (заявлен)</span>` : '');
+const clanAv = (c, cls) => avImg(c.avatar_url, cls) || `<div class="av ph ${cls || ''}">${esc(c.name.slice(0, 2).toUpperCase())}</div>`;
 
-const F = { q: '', faction: '', goal: '', tier: '', tpw: '', gear: '', kd: '', ehp: '', speed: '', nomic: false, verified: false, init: false };
+const fitList = (c, p, who) => {
+  const r = [[p.gear_level >= c.min_gear_level, `Снаряга от: ${GEAR[c.min_gear_level]} (${who}: ${GEAR[p.gear_level] || '—'})`]];
+  if (c.min_kd) r.push([p.kd != null && p.kd >= c.min_kd, `K/D от ${c.min_kd} (${who}: ${p.kd ?? '—'})`]);
+  if (c.min_ehp) r.push([p.ehp != null && p.ehp >= c.min_ehp, `Приведёнка от ${c.min_ehp} (${who}: ${p.ehp ?? '—'})`]);
+  if (c.min_speed) r.push([p.speed != null && Number(p.speed) >= Number(c.min_speed), `Скорость от ${c.min_speed} (${who}: ${p.speed ?? '—'})`]);
+  if (c.needs_mic) r.push([!!p.mic, `Нужен микрофон (${who}: ${p.mic ? 'есть' : 'нет'})`]);
+  if (c.tournaments_per_week) r.push([p.tournaments_per_week >= c.tournaments_per_week, `Турниров в неделю: ${c.tournaments_per_week} (${who}: ${p.tournaments_per_week ?? 0})`]);
+  return r;
+};
+const fitHtml = r => r.map(([ok, t]) => `<p>${ok ? '<span class="okc">✓</span>' : '<span class="err">✕</span>'} ${t}</p>`).join('');
+
+const clanMatches = c =>
+  (!F.q || c.name.toLowerCase().includes(F.q.trim().toLowerCase())) &&
+  (!F.tier || (c.tier && tierRank(c.tier) <= tierRank(F.tier))) &&
+  (F.tpw === '' || c.tournaments_per_week >= Number(F.tpw)) &&
+  (!F.faction || c.faction === F.faction) &&
+  (!F.goal || (c.goals || []).includes(F.goal)) &&
+  (F.bpw === '' || c.brawls_per_week >= Number(F.bpw)) &&
+  (!F.gear || c.min_gear_level <= Number(F.gear)) &&
+  (F.kd === '' || !c.min_kd || c.min_kd <= Number(F.kd)) &&
+  (F.ehp === '' || !c.min_ehp || c.min_ehp <= Number(F.ehp)) &&
+  (F.speed === '' || !c.min_speed || c.min_speed <= Number(F.speed)) &&
+  (!F.nomic || !c.needs_mic) && (!F.verified || c.verified_tier) && (!F.slots || c.open_slots > 0);
+
+const clanSorter = (a, b) => F.sort === 'slots' ? b.open_slots - a.open_slots
+  : F.sort === 'size' ? b.roster_size - a.roster_size
+  : (!a.verified_tier - !b.verified_tier) || tierRank(a.tier) - tierRank(b.tier) || b.open_slots - a.open_slots;
 
 async function viewSearch() {
   const body = document.getElementById('body');
   const [dir, pr, ap] = await Promise.all([
     sb.from('clan_directory').select('*'),
-    sb.from('profiles').select('gear_level,kd,ehp,speed').eq('user_id', user.id).maybeSingle(),
+    sb.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
     sb.from('clan_applications').select('clan_id').eq('user_id', user.id).eq('status', 'pending')
   ]);
   const err = dir.error || ap.error;
   if (err) return body.innerHTML = failBox(err);
-  if (!F.init && pr.data) { F.gear = String(pr.data.gear_level); if (pr.data.kd != null) F.kd = String(pr.data.kd); if (pr.data.ehp != null) F.ehp = String(pr.data.ehp); if (pr.data.speed != null) F.speed = String(pr.data.speed); F.init = true; }
+  const prof = pr.data;
+  if (!F.init && prof) {
+    F.gear = String(prof.gear_level);
+    if (prof.kd != null) F.kd = String(prof.kd);
+    if (prof.ehp != null) F.ehp = String(prof.ehp);
+    if (prof.speed != null) F.speed = String(prof.speed);
+    F.init = true;
+  }
   const applied = new Set(ap.data.map(a => a.clan_id));
-  body.innerHTML = `<div class="card"><h2>Поиск клана</h2><div class="grid">
-    ${fld('Название', `<input data-f="q" value="${esc(F.q)}">`)}
-    ${fld('Фракция', `<select data-f="faction">${selOpts(FACTIONS, F.faction, 'Любая')}</select>`)}
-    ${fld('Цель клана', `<select data-f="goal">${selOpts(GOALS, F.goal, 'Любая')}</select>`)}
-    ${fld('Тир', `<select data-f="tier">${selOpts(TIERS, F.tier, 'Любой')}</select>`)}
-    ${fld('Турниров в неделю, не меньше', `<select data-f="tpw">${selOpts(WEEK, F.tpw, 'Любое')}</select>`)}
-    ${fld('Моя снаряга', `<select data-f="gear">${selOpts(GEAR, F.gear, 'Любая')}</select>`)}
-    ${fld('Мой K/D', `<input data-f="kd" type="number" step="0.01" min="0" value="${esc(F.kd)}">`)}
-    ${fld('Моя приведёнка', `<input data-f="ehp" type="number" min="0" value="${esc(F.ehp)}">`)}
-    ${fld('Моя скорость (скорость бега + передвижения)', `<input data-f="speed" type="number" step="0.01" min="0" value="${esc(F.speed)}">`)}</div>
-    <label class="chk"><input type="checkbox" data-f="nomic" ${F.nomic ? 'checked' : ''}> Без требования микрофона</label>
-    <label class="chk"><input type="checkbox" data-f="verified" ${F.verified ? 'checked' : ''}> Только проверенные</label></div>
-    <div id="res"></div>`;
+  if (openClan) {
+    const c = dir.data.find(x => x.id === openClan);
+    if (c) return viewClanProfile(body, c, prof, applied);
+    openClan = null;
+  }
+  const sel = (key, opts, any) => `<select data-f="${key}">${selOpts(opts, F[key], any)}</select>`;
+  const num = (key, step) => `<input data-f="${key}" type="number" step="${step || 1}" min="0" value="${esc(F[key])}">`;
+  const chk = (key, text) => `<label class="chk"><input type="checkbox" data-f="${key}" ${F[key] ? 'checked' : ''}> ${text}</label>`;
+  body.innerHTML = `<div class="sbar">
+      <input class="sq" data-f="q" placeholder="Поиск по названию" value="${esc(F.q)}">
+      <button class="ghost" id="fbtn">⚙ Фильтры <span class="badge" id="fcnt"></span></button>
+      <div class="sbasic">${sel('tier', TIER_OPTS, 'Любой тир')}${sel('tpw', TPW_OPTS, 'Турниры')}${sel('faction', FACTIONS, 'Фракция')}</div>
+    </div>
+    <p class="mut" id="rcount"></p><div class="clist" id="res"></div>
+    <div class="scrim" id="fscrim" style="z-index:25"></div>
+    <div class="sheet" id="sheet">
+      <div class="row" style="justify-content:space-between;align-items:center;margin:0"><h2 style="margin:0">Фильтры</h2><button class="ghost" id="fclose">Закрыть</button></div>
+      <h3>Клан</h3>
+      <div class="fgrid">${fld('Цель клана', sel('goal', GOALS, 'Любая'))}${fld('Потасовок в неделю', sel('bpw', BPW_OPTS, 'Любое'))}</div>
+      ${chk('verified', 'Только проверенные')}${chk('slots', 'Есть свободные места')}${chk('nomic', 'Без требования микрофона')}
+      <h3>Мои показатели (показать кланы, куда я подхожу)</h3>
+      <div class="fgrid">${fld('Моя снаряга', sel('gear', GEAR, 'Любая'))}${fld('Мой K/D', num('kd', 0.01))}
+        ${fld('Моя приведёнка', num('ehp'))}${fld('Моя скорость (бега + передвижения)', num('speed', 0.01))}</div>
+      <h3>Порядок</h3>${fld('Сортировка', sel('sort', SORTS))}
+      <div class="sfoot"><button class="ghost" id="freset">Сбросить всё</button><button id="fshow">Показать</button></div>
+    </div>`;
   const res = document.getElementById('res');
-  const ok = c => (!F.q || c.name.toLowerCase().includes(F.q.toLowerCase())) && (!F.faction || c.faction === F.faction) &&
-    (!F.goal || (c.goals || []).includes(F.goal)) && (!F.tier || c.tier === F.tier) &&
-    (F.tpw === '' || c.tournaments_per_week >= Number(F.tpw)) && (!F.gear || c.min_gear_level <= Number(F.gear)) &&
-    (F.kd === '' || !c.min_kd || c.min_kd <= Number(F.kd)) && (F.ehp === '' || !c.min_ehp || c.min_ehp <= Number(F.ehp)) && (F.speed === '' || !c.min_speed || c.min_speed <= Number(F.speed)) && (!F.nomic || !c.needs_mic) && (!F.verified || c.verified_tier);
-  const tr = t => t ? 'SABCDE'.indexOf(t) : 9;
-  const card = c => `<div class="card"><div class="brand">${c.avatar_url ? '<img class="av" src="' + esc(c.avatar_url) + '" alt="">' : ''}<h2 style="margin:0">${esc(c.name)}${c.verified_tier ? ' · тир ' + c.verified_tier + ' ✓ проверен' : (c.tier ? ' · тир ' + c.tier + ' (заявлен)' : '')}</h2></div>
-    <p class="mut">${FACTIONS[c.faction] || 'фракция не указана'} · в составе ${c.roster_size}${c.open_slots ? ', мест: ' + c.open_slots : ''}</p>
-    <p>${(c.goals || []).map(g => GOALS[g]).join(', ') || 'Цель не указана'}</p>
-    <p class="mut">Снаряга от: ${GEAR[c.min_gear_level]}${c.min_kd ? ' · K/D от ' + c.min_kd : ''}${c.min_ehp ? ' · приведёнка от ' + c.min_ehp : ''}${c.min_speed ? ' · скорость от ' + c.min_speed : ''}${c.needs_mic ? ' · нужен микрофон' : ''}</p>
-    <p class="mut">Турниров в неделю: ${c.tournaments_per_week} · потасовок: ${c.brawls_per_week}</p>
-    ${c.about ? `<p>${esc(c.about)}</p>` : ''}${c.contact ? `<p class="mut">Контакт: ${esc(c.contact)}</p>` : ''}${linksHtml(c.links)}
-    ${applied.has(c.id) ? '<p class="mut">Заявка отправлена</p>' : `<button data-apply="${c.id}">Подать заявку</button>`} ${c.owner_id && c.owner_id !== user.id ? `<button class="ghost" data-dmto="${c.owner_id}">Написать лидеру</button>` : ''}</div>`;
+  const row = c => `<div class="card crow" data-open="${c.id}">${clanAv(c)}
+    <div class="meta"><div class="rtitle"><b>${esc(c.name)}</b>${tierBadge(c)}</div>
+      <div class="mut">${FACTIONS[c.faction] || 'Фракция не указана'} · в составе ${c.roster_size}${c.open_slots ? ' · мест: ' + c.open_slots : ''}</div>
+      <div style="margin-top:6px">${(c.goals || []).slice(0, 2).map(g => `<span class="chip">${esc(GOALS[g])}</span>`).join('')}<span class="chip">Турниры: ${c.tournaments_per_week}/нед</span>${applied.has(c.id) ? '<span class="chip ok">Заявка отправлена</span>' : ''}</div></div></div>`;
   const paint = () => {
-    const list = dir.data.filter(ok).sort((a, b) => !a.verified_tier - !b.verified_tier || tr(a.tier) - tr(b.tier) || b.open_slots - a.open_slots);
-    res.innerHTML = list.length ? list.map(card).join('') : '<div class="card mut">Подходящих кланов нет. Попробуй ослабить фильтры.</div>';
-    res.querySelectorAll('[data-dmto]').forEach(b => b.onclick = () => openDm(b.dataset.dmto));
-    res.querySelectorAll('[data-apply]').forEach(b => b.onclick = async () => {
-      const m = prompt('Сообщение лидеру (необязательно):');
-      if (m === null) return;
-      const { error } = await sb.rpc('apply_to_clan', { cid: b.dataset.apply, msg: m });
-      if (error) return alert(error.message);
-      applied.add(b.dataset.apply); paint();
-    });
+    const list = dir.data.filter(clanMatches).sort(clanSorter);
+    const active = ['goal', 'bpw', 'gear', 'kd', 'ehp', 'speed'].filter(k => F[k] !== '').length + ['nomic', 'verified', 'slots'].filter(k => F[k]).length;
+    document.getElementById('fcnt').textContent = active || '';
+    document.getElementById('rcount').textContent = 'Найдено кланов: ' + list.length;
+    document.getElementById('fshow').textContent = 'Показать (' + list.length + ')';
+    res.innerHTML = list.length ? list.map(row).join('') : '<div class="card mut">Подходящих кланов нет. Ослабь фильтры или нажми «Сбросить всё».</div>';
+    res.querySelectorAll('[data-open]').forEach(el => el.onclick = () => { openClan = el.dataset.open; window.scrollTo(0, 0); viewSearch(); });
   };
   body.querySelectorAll('[data-f]').forEach(el => el.oninput = () => { F[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value; paint(); });
+  const sheet = document.getElementById('sheet'), fscrim = document.getElementById('fscrim');
+  const toggle = open => { sheet.classList.toggle('open', open); fscrim.classList.toggle('open', open); };
+  document.getElementById('fbtn').onclick = () => toggle(true);
+  document.getElementById('fclose').onclick = () => toggle(false);
+  document.getElementById('fshow').onclick = () => toggle(false);
+  fscrim.onclick = () => toggle(false);
+  document.getElementById('freset').onclick = () => { Object.assign(F, F0); viewSearch(); };
   paint();
+}
+
+function viewClanProfile(body, c, prof, applied) {
+  const reqs = prof ? fitHtml(fitList(c, prof, 'у тебя')) : '';
+  const plain = [`Снаряга от: ${GEAR[c.min_gear_level]}`, c.min_kd ? `K/D от ${c.min_kd}` : '', c.min_ehp ? `Приведёнка от ${c.min_ehp}` : '',
+    c.min_speed ? `Скорость от ${c.min_speed}` : '', c.needs_mic ? 'Нужен микрофон' : ''].filter(Boolean).map(t => `<p>• ${t}</p>`).join('');
+  let apply;
+  if (applied.has(c.id)) apply = '<p class="mut">Заявка отправлена. Ответ смотри во вкладке «Мои заявки».</p>';
+  else if (!prof) apply = '<p class="mut">Чтобы подать заявку, сначала заполни игровой профиль: лидер увидит твою снарягу и показатели.</p><button id="toprof">Заполнить профиль</button>';
+  else apply = `${fld('Сообщение лидеру (необязательно)', '<textarea id="amsg" maxlength="500" placeholder="Расскажи, чем можешь быть полезен клану"></textarea>')}<button id="apply">Подать заявку</button>`;
+  body.innerHTML = `<button class="ghost" id="cback">← К списку кланов</button>
+    <div class="card" style="margin-top:12px"><div class="brand" style="align-items:flex-start;gap:14px">${clanAv(c, 'lg')}
+      <div><h2 style="margin:0 0 8px">${esc(c.name)}</h2>${tierBadge(c)}<span class="chip">${FACTIONS[c.faction] || 'Фракция не указана'}</span></div></div>
+      <p class="mut" style="margin-top:10px">В составе ${c.roster_size}${c.open_slots ? ' · свободных мест: ' + c.open_slots : ' · свободных мест нет'}</p>
+      ${c.about ? `<p>${esc(c.about)}</p>` : ''}${linksHtml(c.links)}${c.contact ? `<p class="mut">Контакт: ${esc(c.contact)}</p>` : ''}</div>
+    <div class="card"><h2>Чем занимается клан</h2><div>${(c.goals || []).map(g => `<span class="chip">${esc(GOALS[g])}</span>`).join('') || '<span class="mut">Цель не указана</span>'}</div>
+      <p class="mut">Турниров в неделю: ${c.tournaments_per_week} · потасовок в неделю: ${c.brawls_per_week}</p></div>
+    <div class="card"><h2>Требования${prof ? ' и твои показатели' : ''}</h2>${reqs || plain}</div>
+    <div class="card"><h2>Заявка</h2>${apply}
+      ${c.owner_id && c.owner_id !== user.id ? '<div class="row" style="margin-top:10px"><button class="ghost" id="dmlead">Написать лидеру</button></div>' : ''}</div>`;
+  document.getElementById('cback').onclick = () => { openClan = null; viewSearch(); };
+  const dm = document.getElementById('dmlead');
+  if (dm) dm.onclick = () => openDm(c.owner_id);
+  const tp = document.getElementById('toprof');
+  if (tp) tp.onclick = () => { tab = 'profile'; renderHub(); };
+  const ap = document.getElementById('apply');
+  if (ap) ap.onclick = async () => {
+    const { error } = await sb.rpc('apply_to_clan', { cid: c.id, msg: val('amsg') });
+    if (error) return alert(error.message);
+    alert('Заявка отправлена');
+    viewSearch();
+  };
 }
 
 async function viewMyApps() {
@@ -365,6 +484,7 @@ async function viewMyApps() {
 
 async function viewApps() {
   const body = document.getElementById('body');
+  const { data: req } = await sb.from('clans').select('*').eq('id', clan.id).single();
   const { data, error } = await sb.from('clan_applications').select('id,message,created_at,profiles(*)')
     .eq('clan_id', clan.id).eq('status', 'pending').order('created_at');
   if (error) return body.innerHTML = failBox(error);
@@ -375,10 +495,11 @@ async function viewApps() {
     `Оружие: ${p.weapon_main ? esc(p.weapon_main) : '—'}${p.weapon_enchant != null ? ' +' + p.weapon_enchant : ''}`,
     `K/D: ${p.kd ?? '—'} · приведёнка: ${p.ehp ?? '—'} · скорость: ${p.speed ?? '—'} · турниров в неделю: ${p.tournaments_per_week} · ${p.mic ? 'с микрофоном' : 'без микрофона'}`
   ].map(l => `<p class="mut">${l}</p>`).join('');
-  body.innerHTML = data.map(a => { const p = a.profiles || {}; return `<div class="card"><div class="brand">${avImg(p.avatar_url)}<h2 style="margin:0">${esc(p.nickname || 'Без профиля')}</h2></div>${lines(p)}
+  body.innerHTML = data.map(a => { const p = a.profiles || {}; return `<div class="card"><div class="brand">${avImg(p.avatar_url)}<h2 style="margin:0">${esc(p.nickname || 'Без профиля')}</h2></div>${lines(p)}<div data-gh="${a.id}"></div>${req && p.nickname ? '<p class="mut" style="margin-top:8px">Соответствие требованиям клана:</p>' + fitHtml(fitList(req, p, 'у игрока')) : ''}
     ${p.gear_notes ? `<p>${esc(p.gear_notes)}</p>` : ''}${p.about ? `<p>${esc(p.about)}</p>` : ''}
     ${p.contact ? `<p class="mut">Discord: ${esc(p.contact)}</p>` : ''}${a.message ? `<p><b>Сообщение:</b> ${esc(a.message)}</p>` : ''}
     <div class="row"><button data-acc="${a.id}">Принять</button><button class="ghost" data-rej="${a.id}">Отклонить</button><button class="ghost" data-dm="${p.user_id}">Написать</button></div></div>`; }).join('');
+  loadCatalog().catch(() => null).then(cat => data.forEach(a => { const h = body.querySelector('[data-gh="' + a.id + '"]'); if (h && a.profiles && a.profiles.nickname) renderGear(h, gearOf(a.profiles), byIdOf(cat)); }));
   const decide = (attr, accept) => body.querySelectorAll(`[${attr}]`).forEach(b => b.onclick = async () => {
     const { error: e } = await sb.rpc('decide_application', { aid: b.getAttribute(attr), accept });
     if (e) return alert(e.message);
@@ -529,7 +650,7 @@ async function viewSettings() {
 }
 
 let period = 30;
-const failBox = e => '<div class="card err">' + esc(e.message) + (/squads/i.test(e.message) ? '<br>Выполни squads.sql в Supabase → SQL Editor.' : '') + (/clan_invites|display_name|touch_member|join_clan|create_invite/i.test(e.message) ? '<br>Выполни invites.sql в Supabase → SQL Editor.' : '') + (/profiles|clan_directory|clan_applications|apply_to_clan|decide_application|min_gear_level/i.test(e.message) ? '<br>Выполни directory.sql в Supabase → SQL Editor.' : '') + (/avatar_url|min_speed|speed|links/i.test(e.message) ? '<br>Выполни clan_profile.sql в Supabase → SQL Editor.' : '') + (/verification|platform_admins|verified_tier|request_verification|review_verification/i.test(e.message) ? '<br>Выполни verification.sql в Supabase → SQL Editor.' : '') + (/clan_messages|direct_messages|user_cards|chat_mode|touch_card/i.test(e.message) ? '<br>Выполни chat.sql в Supabase → SQL Editor.' : '') + '</div>';
+const failBox = e => '<div class="card err">' + esc(e.message) + (/squads/i.test(e.message) ? '<br>Выполни squads.sql в Supabase → SQL Editor.' : '') + (/clan_invites|display_name|touch_member|join_clan|create_invite/i.test(e.message) ? '<br>Выполни invites.sql в Supabase → SQL Editor.' : '') + (/profiles|clan_directory|clan_applications|apply_to_clan|decide_application|min_gear_level/i.test(e.message) ? '<br>Выполни directory.sql в Supabase → SQL Editor.' : '') + (/avatar_url|min_speed|speed|links/i.test(e.message) ? '<br>Выполни clan_profile.sql в Supabase → SQL Editor.' : '') + (/verification|platform_admins|verified_tier|request_verification|review_verification/i.test(e.message) ? '<br>Выполни verification.sql в Supabase → SQL Editor.' : '') + (/clan_messages|direct_messages|user_cards|chat_mode|touch_card/i.test(e.message) ? '<br>Выполни chat.sql в Supabase → SQL Editor.' : '') + (/clan_events|event_rsvps|team_score/i.test(e.message) ? '<br>Выполни matches_events.sql в Supabase → SQL Editor.' : '') + '</div>';
 let ratingSquad = '';
 
 async function viewRating() {
@@ -537,7 +658,7 @@ async function viewRating() {
   const since = period ? new Date(Date.now() - period * 864e5).toISOString() : '1970-01-01T00:00:00Z';
   const [ms, st, pl, sq] = await Promise.all([
     sb.from('matches').select('id').eq('clan_id', clan.id).gte('played_at', since),
-    sb.from('match_stats').select('player_id,kills,deaths,damage,matches!inner(played_at)')
+    sb.from('match_stats').select('player_id,kills,deaths,assists,score,matches!inner(played_at)')
       .eq('clan_id', clan.id).eq('confirmed', true).gte('matches.played_at', since),
     sb.from('players').select('id,nick,squad_id').eq('clan_id', clan.id).eq('active', true),
     sb.from('squads').select('id,name').eq('clan_id', clan.id).order('name')
@@ -548,10 +669,10 @@ async function viewRating() {
   const total = ms.data.length;
   const sqName = Object.fromEntries(sq.data.map(x => [x.id, x.name]));
   const agg = {};
-  pl.data.forEach(p => agg[p.id] = { nick: p.nick, sid: p.squad_id, sq: sqName[p.squad_id] || '—', n: 0, k: 0, d: 0, dm: 0, last: null });
+  pl.data.forEach(p => agg[p.id] = { id: p.id, nick: p.nick, sid: p.squad_id, sq: sqName[p.squad_id] || '—', n: 0, k: 0, d: 0, ast: 0, sc: 0, last: null });
   st.data.forEach(s => {
-    const a = agg[s.player_id]; if (!a) return;
-    a.n++; a.k += s.kills || 0; a.d += s.deaths || 0; a.dm += s.damage || 0;
+    const a = agg[s.player_id]; if (!a || idleStat(s)) return;
+    a.n++; a.k += s.kills || 0; a.d += s.deaths || 0; a.ast += s.assists || 0; a.sc += s.score || 0;
     const t = s.matches.played_at; if (!a.last || t > a.last) a.last = t;
   });
   const list = Object.values(agg)
@@ -559,31 +680,282 @@ async function viewRating() {
     .sort((x, y) => y.n - x.n || y.k - x.k);
   const pb = (v, l) => `<button class="ghost ${period === v ? 'on' : ''}" data-p="${v}">${l}</button>`;
   const fopt = (v, l) => `<option value="${v}" ${ratingSquad === v ? 'selected' : ''}>${esc(l)}</option>`;
-  const rows = list.map((a, i) => `<tr class="${a.n ? '' : 'dim'}"><td>${i + 1}</td><td>${esc(a.nick)}</td><td>${esc(a.sq)}</td>
+  const rows = list.map((a, i) => `<tr class="${a.n ? '' : 'dim'}"><td>${i + 1}</td><td>${plLink(a.id, a.nick)}</td><td>${esc(a.sq)}</td>
     <td>${a.n}</td><td>${total ? Math.round(a.n / total * 100) + '%' : '—'}</td>
-    <td>${a.k}</td><td>${a.d}</td><td>${a.d ? (a.k / a.d).toFixed(2) : '—'}</td><td>${a.dm}</td>
+    <td>${a.k}</td><td>${a.d}</td><td>${a.d ? (a.k / a.d).toFixed(2) : '—'}</td><td>${a.ast}</td><td>${a.sc}</td>
     <td>${a.last ? new Date(a.last).toLocaleDateString('ru-RU') : 'не был'}</td></tr>`).join('');
   body.innerHTML = `<div class="row">${pb(7, '7 дней')}${pb(30, '30 дней')}${pb(0, 'Всё время')}
     <select id="fsq">${fopt('', 'Все отряды')}${sq.data.map(x => fopt(x.id, x.name)).join('')}${fopt('none', 'Без отряда')}</select></div>
     <div class="card wrap"><h2>Рейтинг активности</h2>
     <p class="mut">Боёв клана за период: ${total}. Явка — доля этих боёв, в которых игрок участвовал.</p>
-    <table><tr><th>#</th><th>Игрок</th><th>Отряд</th><th>Боёв</th><th>Явка</th><th>K</th><th>D</th><th>K/D</th><th>Урон</th><th>Последний бой</th></tr>${rows}</table></div>`;
+    <table><tr><th>#</th><th>Игрок</th><th>Отряд</th><th>Боёв</th><th>Явка</th><th>K</th><th>D</th><th>K/D</th><th>П</th><th>Счёт</th><th>Последний бой</th></tr>${rows}</table></div>`;
   body.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { period = Number(b.dataset.p); viewRating(); });
   document.getElementById('fsq').onchange = e => { ratingSquad = e.target.value; viewRating(); };
+  wirePl(body);
 }
+
+const oppRow = () => `<div class="row opp"><input class="oname" placeholder="Название клана" maxlength="40" style="flex:2 1 150px"><input type="number" class="oscore" min="0" placeholder="Очки" style="width:90px"><input type="number" class="oplace" min="1" placeholder="Место" style="width:90px"></div>`;
+function manualMeta() {
+  const place = numv('mplace'), score = numv('mscore');
+  const opps = [...document.querySelectorAll('.opp')].map(r => ({ name: r.querySelector('.oname').value.trim().slice(0, 40),
+    score: toInt(r.querySelector('.oscore').value), place: toInt(r.querySelector('.oplace').value) })).filter(t => t.name);
+  const teams = opps.length || place != null || score != null ? [{ name: clan.name, score, place, own: true }, ...opps] : [];
+  return { place, team_score: score, extra: { source: 'manual', teams } };
+}
+
+const ICON_BASE = 'https://raw.githubusercontent.com/EXBO-Studio/stalzone-database/main/ru';
+const iconUrl = p => /^\/icons\/[\w\-\/]+\.png$/.test(p || '') ? ICON_BASE + p : null;
+const iconImg = (p, cls) => { const u = iconUrl(p); return u ? `<img class="gi ${cls || ''}" loading="lazy" src="${esc(u)}" alt="">` : `<div class="gi ph ${cls || ''}">?</div>`; };
+const RANKS = { NEWBIE: 'Новичок', STALKER: 'Сталкер', VETERAN: 'Ветеран', MASTER: 'Мастер', LEGEND: 'Легенда' };
+const RANK_ORDER = ['LEGEND', 'MASTER', 'VETERAN', 'STALKER', 'NEWBIE', ''];
+const CAT_RU = { 'armor/combat': 'Боевая броня', 'armor/combined': 'Комбинированная броня', 'armor/scientist': 'Научная броня', 'armor/clothes': 'Одежда', 'armor/device': 'Устройства',
+  'weapon/assault_rifle': 'Штурмовая винтовка', 'weapon/sniper_rifle': 'Снайперская винтовка', 'weapon/pistol': 'Пистолет', 'weapon/shotgun_rifle': 'Дробовик',
+  'weapon/submachine_gun': 'Пистолет-пулемёт', 'weapon/machine_gun': 'Пулемёт', 'weapon/melee': 'Холодное оружие', 'weapon/heavy': 'Тяжёлое оружие', 'weapon/device': 'Детекторы и устройства',
+  backpacks: 'Рюкзак', containers: 'Контейнер', 'artefact/gravity': 'Артефакт (гравитационный)', 'artefact/thermal': 'Артефакт (термический)',
+  'artefact/biochemical': 'Артефакт (биохимический)', 'artefact/electrophysical': 'Артефакт (электрофизический)', 'artefact/other_arts': 'Артефакт (другой)' };
+const CAT_GROUPS = { armor: ['Броня', c => c.startsWith('armor/')], weapon: ['Оружие', c => c.startsWith('weapon/')],
+  pack: ['Рюкзаки и контейнеры', c => c === 'backpacks' || c === 'containers'], cont: ['Контейнеры', c => c === 'containers'], art: ['Артефакты', c => c.startsWith('artefact/')] };
+let CATALOG = null;
+async function loadCatalog() {
+  if (CATALOG) return CATALOG;
+  const r = await fetch('catalog.json');
+  if (!r.ok) throw new Error('Каталог не загрузился (файл catalog.json должен лежать рядом с index.html)');
+  CATALOG = await r.json();
+  return CATALOG;
+}
+function searchCatalog(cat, group, q, rank) {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  return cat.filter(x => (!group || CAT_GROUPS[group][1](x.c)) && (!rank || x.r === rank) && words.every(w => (x.n + ' ' + x.e).toLowerCase().includes(w)))
+    .sort((a, b) => RANK_ORDER.indexOf(a.r) - RANK_ORDER.indexOf(b.r) || a.n.localeCompare(b.n, 'ru'));
+}
+const catRow = (x, attr) => `<div class="prow" ${attr || ''}>${iconImg(x.p)}<div style="flex:1;min-width:0"><b>${esc(x.n)}</b>${x.e && x.e !== x.n ? `<div class="mut" style="font-size:12px">${esc(x.e)}</div>` : ''}
+  <div class="mut" style="font-size:12px">${CAT_RU[x.c] || esc(x.c)}</div></div>${x.r ? `<span class="chip" style="margin:0">${RANKS[x.r]}</span>` : ''}</div>`;
+
+async function openPicker(group, onPick) {
+  let cat;
+  try { cat = await loadCatalog(); } catch (e) { return alert(e.message); }
+  const scrim = document.createElement('div'); scrim.className = 'scrim open'; scrim.style.zIndex = '40';
+  const box = document.createElement('div'); box.className = 'sheet open'; box.style.zIndex = '50';
+  box.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:0"><h2 style="margin:0">${CAT_GROUPS[group][0]}</h2><button class="ghost" id="pk_x">Закрыть</button></div>
+    <input id="pk_q" placeholder="Поиск по названию (по-русски или по-английски)" style="width:100%;margin:10px 0"><div id="pk_list"></div>
+    <p class="mut" style="margin-top:12px">Нет в списке? Укажи название вручную:</p>
+    <div class="row"><input id="pk_own" maxlength="60" placeholder="Своё название" style="flex:1 1 160px"><button class="ghost" id="pk_set">Использовать</button></div>
+    <p class="mut" style="font-size:12px">Данные и иконки предметов: открытая база EXBO.</p>`;
+  document.body.append(scrim, box);
+  const close = () => { scrim.remove(); box.remove(); };
+  const list = box.querySelector('#pk_list');
+  const paint = () => {
+    const res = searchCatalog(cat, group, box.querySelector('#pk_q').value, '').slice(0, 40);
+    list.innerHTML = res.length ? res.map(x => catRow(x, `data-id="${x.i}"`)).join('') : '<p class="mut">Ничего не найдено.</p>';
+    list.querySelectorAll('[data-id]').forEach(el => el.onclick = () => { const x = cat.find(y => y.i === el.dataset.id); close(); onPick({ name: x.n, icon: x.p, id: x.i }); });
+  };
+  box.querySelector('#pk_q').oninput = paint;
+  box.querySelector('#pk_x').onclick = close; scrim.onclick = close;
+  box.querySelector('#pk_set').onclick = () => { const t = box.querySelector('#pk_own').value.trim(); if (!t) return; close(); onPick({ name: t, icon: null }); };
+  paint();
+}
+
+let catQ = '', catGroup = '', catRank = '', catLimit = 60;
+async function viewCatalog() {
+  const body = document.getElementById('body');
+  let cat;
+  try { cat = await loadCatalog(); } catch (e) { return body.innerHTML = `<div class="card err">${esc(e.message)}</div>`; }
+  const groups = Object.fromEntries(Object.entries(CAT_GROUPS).map(([k, v]) => [k, v[0]]));
+  body.innerHTML = `<div class="card"><h2>Каталог снаряжения</h2><p class="mut">Броня, оружие, рюкзаки, контейнеры и артефакты из игры. Данные и иконки предметов: открытая база EXBO.</p>
+    <input id="c_q" placeholder="Поиск по названию" value="${esc(catQ)}" style="width:100%;margin-bottom:8px">
+    <div class="sbasic" style="grid-template-columns:1fr 1fr"><select id="c_g">${selOpts(groups, catGroup, 'Все категории')}</select><select id="c_r">${selOpts(RANKS, catRank, 'Любой ранг')}</select></div></div>
+    <p class="mut" id="c_n"></p><div class="card" id="c_list"></div>`;
+  const paint = () => {
+    const res = searchCatalog(cat, catGroup, catQ, catRank);
+    document.getElementById('c_n').textContent = 'Найдено предметов: ' + res.length;
+    document.getElementById('c_list').innerHTML = (res.slice(0, catLimit).map(x => catRow(x)).join('') || '<p class="mut">Ничего не найдено.</p>')
+      + (res.length > catLimit ? '<div class="row" style="margin-top:10px"><button class="ghost" id="c_more">Показать ещё</button></div>' : '');
+    const more = document.getElementById('c_more');
+    if (more) more.onclick = () => { catLimit += 60; paint(); };
+  };
+  document.getElementById('c_q').oninput = e => { catQ = e.target.value; catLimit = 60; paint(); };
+  document.getElementById('c_g').onchange = e => { catGroup = e.target.value; catLimit = 60; paint(); };
+  document.getElementById('c_r').onchange = e => { catRank = e.target.value; catLimit = 60; paint(); };
+  paint();
+}
+
+const GEAR_KINDS = { armor: 'Броня', weapon: 'Основной ган', secondary: 'Вторичка', container: 'Контейнер' };
+const byIdOf = cat => cat ? Object.fromEntries(cat.map(x => [x.i, x])) : {};
+function gearOf(p) {
+  const g = p && p.gear && typeof p.gear === 'object' ? p.gear : {};
+  const out = { armor: [], weapon: [], secondary: [], container: [] };
+  Object.keys(out).forEach(k => { out[k] = (Array.isArray(g[k]) ? g[k] : []).filter(x => x && typeof x === 'object').slice(0, 6); });
+  if (!out.armor.length && p && p.armor_name) out.armor.push({ n: p.armor_name, p: p.armor_icon || null, e: p.armor_enchant ?? null, t: p.armor_type || null, id: null });
+  if (!out.weapon.length && p && p.weapon_main) out.weapon.push({ n: p.weapon_main, p: p.weapon_icon || null, e: p.weapon_enchant ?? null, id: null });
+  return out;
+}
+const slotsFor = (it, byId) => Math.min(12, (it && it.id && byId[it.id] && byId[it.id].sl) || 6);
+const contStatsHtml = (it, byId) => {
+  const c = it && it.id && byId[it.id];
+  if (!c || !c.s) return '';
+  return (c.cl ? `<span class="chip" style="margin:8px 0 0">${esc(c.cl)}</span>` : '') + `<div class="cstats">${c.s.map(([k, v]) => `<div class="cs"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+};
+
+function renderGear(host, G, byId) {
+  const cur = { armor: 0, weapon: 0, secondary: 0, container: 0 };
+  const card = k => {
+    const list = G[k], i = Math.min(cur[k], Math.max(0, list.length - 1)), it = list[i];
+    const chips = list.length > 1 ? `<div class="gsets"><span class="mut">Сет</span>${list.map((_, j) => `<button class="ghost sm ${j === i ? 'on' : ''}" data-set="${k}|${j}">${j + 1}</button>`).join('')}</div>` : '';
+    let inner = '<p class="mut">Не указано</p>';
+    if (it) {
+      inner = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${esc(it.n)}</b>${it.e != null ? ` <span class="chip ok" style="margin:0">+${esc(it.e)}</span>` : ''}${k === 'armor' && it.t ? `<div class="mut" style="font-size:12px">${esc(ARMOR[it.t] || '')}</div>` : ''}</div></div>`;
+      if (k === 'container') {
+        const n = slotsFor(it, byId);
+        inner += contStatsHtml(it, byId) + `<div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
+          return `<div class="slot">${a ? `${iconImg(a.p, 'sm')}<span>${esc(a.n)}</span>` : '<span class="mut">пусто</span>'}</div>`; }).join('')}</div>`;
+      }
+    }
+    return `<div class="gcard"><b>${GEAR_KINDS[k]}</b>${chips}${inner}</div>`;
+  };
+  const draw = () => {
+    host.innerHTML = '<div class="gtiles">' + Object.keys(GEAR_KINDS).map(card).join('') + '</div>';
+    host.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { const [k, j] = b.dataset.set.split('|'); cur[k] = Number(j); draw(); });
+  };
+  draw();
+}
+
+function gearEditor(host, G, byId) {
+  const cur = { armor: 0, weapon: 0, secondary: 0, container: 0 };
+  const GROUP = { armor: 'armor', weapon: 'weapon', secondary: 'weapon', container: 'cont' };
+  const cardHtml = k => {
+    const list = G[k];
+    cur[k] = Math.max(0, Math.min(cur[k], list.length - 1));
+    const i = cur[k], it = list[i];
+    const chips = `<div class="gsets"><span class="mut">Сет</span>${list.map((_, j) => `<button class="ghost sm ${j === i ? 'on' : ''}" data-set="${k}|${j}">${j + 1}</button>`).join('')}${list.length < 6 ? `<button class="ghost sm" data-add="${k}">+</button>` : ''}</div>`;
+    if (!it) return `<div class="gcard"><b>${GEAR_KINDS[k]}</b>${chips}<p class="mut">Сетов пока нет. Нажми «+».</p></div>`;
+    const tile = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${it.n ? esc(it.n) : '<span class="mut">Не выбрано</span>'}</b></div></div>`;
+    const acts = `<div class="row" style="margin-top:8px"><button class="ghost sm" data-pick="${k}">${it.n ? 'Сменить' : 'Выбрать из каталога'}</button>${i > 0 ? `<button class="ghost sm" data-main="${k}">Сделать основным</button>` : ''}<button class="ghost sm" data-gdel="${k}">Удалить сет</button></div>`;
+    let more;
+    if (k === 'container') {
+      const n = slotsFor(it, byId);
+      more = contStatsHtml(it, byId) + `<p class="mut" style="margin:10px 0 0">Сборка (артефакты в слотах)</p><div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
+        return `<div class="slot edit" data-slot="${s}">${a ? `${iconImg(a.p, 'sm')}<span>${esc(a.n)}</span><button class="ghost x" data-clr="${s}">×</button>` : '<span class="mut">+</span>'}</div>`; }).join('')}</div>`;
+    } else {
+      more = `<div class="row" style="margin-top:8px">${k === 'armor' ? `<select data-atype="1">${selOpts(ARMOR, it.t, 'Тип брони')}</select>` : ''}<input type="number" min="0" max="15" data-ench="${k}" placeholder="Заточка 0–15" value="${esc(it.e)}" style="width:140px"></div>`;
+    }
+    return `<div class="gcard"><b>${GEAR_KINDS[k]}</b>${chips}${tile}${acts}${more}</div>`;
+  };
+  const draw = () => {
+    host.innerHTML = '<div class="gtiles">' + Object.keys(GEAR_KINDS).map(cardHtml).join('') + '</div>';
+    host.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { const [k, j] = b.dataset.set.split('|'); cur[k] = Number(j); draw(); });
+    host.querySelectorAll('[data-add]').forEach(b => b.onclick = () => { const k = b.dataset.add;
+      G[k].push(k === 'container' ? { n: null, p: null, id: null, b: [] } : { n: null, p: null, id: null, e: null }); cur[k] = G[k].length - 1; draw(); });
+    host.querySelectorAll('[data-gdel]').forEach(b => b.onclick = () => { const k = b.dataset.gdel; if (!confirm('Удалить этот сет?')) return;
+      G[k].splice(cur[k], 1); cur[k] = Math.max(0, cur[k] - 1); draw(); });
+    host.querySelectorAll('[data-main]').forEach(b => b.onclick = () => { const k = b.dataset.main; const [x] = G[k].splice(cur[k], 1); G[k].unshift(x); cur[k] = 0; draw(); });
+    host.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { const k = b.dataset.pick;
+      openPicker(GROUP[k], it => { Object.assign(G[k][cur[k]], { n: it.name, p: it.icon, id: it.id || null }); draw(); }); });
+    host.querySelectorAll('[data-ench]').forEach(el => el.oninput = () => { const k = el.dataset.ench;
+      G[k][cur[k]].e = el.value === '' ? null : Math.max(0, Math.min(15, Math.round(Number(el.value)))); });
+    host.querySelectorAll('[data-atype]').forEach(el => el.onchange = () => { G.armor[cur.armor].t = el.value || null; });
+    host.querySelectorAll('[data-slot]').forEach(el => el.onclick = () => openPicker('art', it => {
+      const c = G.container[cur.container]; c.b = c.b || []; c.b[Number(el.dataset.slot)] = { n: it.name, p: it.icon }; draw(); }));
+    host.querySelectorAll('[data-clr]').forEach(b => b.onclick = e => { e.stopPropagation();
+      const c = G.container[cur.container]; if (c.b) c.b[Number(b.dataset.clr)] = null; draw(); });
+  };
+  draw();
+}
+
+let playerId = null;
+const openPlayer = id => { playerId = id; tab = 'player'; render(); };
+const plLink = (id, nick) => id ? `<a href="#" data-pl="${id}">${esc(nick)}</a>` : esc(nick);
+const wirePl = root => root.querySelectorAll('[data-pl]').forEach(el => el.onclick = e => { e.preventDefault(); openPlayer(el.dataset.pl); });
+
+async function viewPlayer() {
+  const body = document.getElementById('body');
+  if (!playerId) { tab = 'rating'; return render(); }
+  const since = period ? new Date(Date.now() - period * 864e5).toISOString() : '1970-01-01T00:00:00Z';
+  const [pr, ms, st, sq] = await Promise.all([
+    sb.from('players').select('*').eq('id', playerId).maybeSingle(),
+    sb.from('matches').select('id,played_at,mode,result,place').eq('clan_id', clan.id).gte('played_at', since).order('played_at', { ascending: false }).limit(100),
+    sb.from('match_stats').select('match_id,kills,deaths,assists,score').eq('player_id', playerId).eq('confirmed', true),
+    sb.from('squads').select('id,name').eq('clan_id', clan.id)
+  ]);
+  const err = pr.error || ms.error || st.error || sq.error;
+  if (err) return body.innerHTML = failBox(err);
+  const p = pr.data;
+  if (!p) return body.innerHTML = '<div class="card mut">Игрок не найден.</div>';
+  let prof = null, card = null;
+  if (p.user_id) {
+    const r = await Promise.all([sb.from('profiles').select('*').eq('user_id', p.user_id).maybeSingle(), sb.from('user_cards').select('*').eq('user_id', p.user_id).maybeSingle()]);
+    prof = r[0].data; card = r[1].data;
+  }
+  const by = Object.fromEntries(st.data.map(s => [s.match_id, s]));
+  const rows = ms.data.map(m => ({ m, s: by[m.id] && !idleStat(by[m.id]) ? by[m.id] : null }));
+  const played = rows.filter(r => r.s);
+  const sum = f => played.reduce((a, r) => a + (r.s[f] || 0), 0);
+  const k = sum('kills'), d = sum('deaths'), ast = sum('assists'), sc = sum('score');
+  const best = played.reduce((a, r) => Math.max(a, r.s.score || 0), 0);
+  const sqn = (sq.data.find(x => x.id === p.squad_id) || {}).name;
+  const stat = (v, l) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`;
+  const pb = (v, l) => `<button class="ghost ${period === v ? 'on' : ''}" data-p="${v}">${l}</button>`;
+  const seq = rows.slice(0, 30).reverse();
+  const mx = Math.max(1, ...seq.map(r => r.s ? r.s.score || 0 : 0)), bw = 12, gap = 4, H = 70;
+  const bars = seq.map((r, i) => { const h = r.s ? Math.max(3, (r.s.score || 0) / mx * H) : 3;
+    return `<rect x="${i * (bw + gap)}" y="${H - h}" width="${bw}" height="${h}" rx="2" style="fill:var(${r.s ? '--ac' : '--bd'})"/>`; }).join('');
+  const chart = seq.length ? `<p class="mut" style="margin:12px 0 4px">Счёт по боям (слева старые, серые полоски — не явился)</p>
+    <svg viewBox="0 0 ${seq.length * (bw + gap) - gap} ${H}" preserveAspectRatio="none" style="width:100%;height:90px">${bars}</svg>` : '';
+  const hist = rows.slice(0, 15).map(r => r.s
+    ? `<tr><td>${fmtTime(r.m.played_at)}</td><td>${r.s.kills ?? '—'}</td><td>${r.s.deaths ?? '—'}</td><td>${r.s.assists ?? '—'}</td><td>${r.s.score ?? '—'}</td></tr>`
+    : `<tr class="dim"><td>${fmtTime(r.m.played_at)}</td><td colspan="4">не явился</td></tr>`).join('');
+  const gear = prof ? `<div class="card"><h2>Снаряга и показатели</h2><div id="gear_host"></div>
+    <div style="margin-top:10px"><span class="chip">${FACTIONS[prof.faction] || 'Без фракции'}</span><span class="chip ok">${GEAR[prof.gear_level] || '—'}</span><span class="chip">${prof.mic ? 'С микрофоном' : 'Без микрофона'}</span></div>
+    <div class="stats">${stat(prof.kd ?? '—', 'K/D')}${stat(prof.ehp ?? '—', 'приведёнка')}${stat(prof.speed ?? '—', 'скорость')}${stat((prof.tournaments_per_week ?? 0) + ' в нед.', 'турниры')}</div>
+    ${prof.gear_notes ? `<p style="margin-top:10px">${esc(prof.gear_notes)}</p>` : ''}</div>` : '';
+  body.innerHTML = `<button class="ghost" id="pback">← К рейтингу</button>
+    <div class="card" style="margin-top:12px"><div class="brand" style="gap:14px">${avImg(card && card.avatar_url, 'lg') || `<div class="av ph lg">${esc(p.nick.slice(0, 2).toUpperCase())}</div>`}
+      <div><h2 style="margin:0 0 6px">${esc(p.nick)}</h2>${sqn ? `<span class="chip">Отряд: ${esc(sqn)}</span>` : ''}${p.user_id ? '<span class="chip ok">Аккаунт привязан</span>' : ''}${p.active ? '' : '<span class="chip">Не в составе</span>'}</div></div>
+      ${p.user_id && p.user_id !== user.id ? '<div class="row" style="margin-top:10px"><button class="ghost" id="pdm">Написать</button></div>' : ''}</div>
+    <div class="row">${pb(7, '7 дней')}${pb(30, '30 дней')}${pb(0, 'Всё время')}</div>
+    <div class="card"><h2>Статистика за период</h2><p class="mut">Боёв клана: ${rows.length}</p>
+      <div class="stats">${stat(played.length, 'боёв сыграно')}${stat(rows.length ? Math.round(played.length / rows.length * 100) + '%' : '—', 'явка')}
+      ${stat(d ? (k / d).toFixed(2) : '—', 'K/D')}${stat(played.length ? Math.round(sc / played.length) : '—', 'средний счёт')}
+      ${stat(best || '—', 'лучший счёт')}${stat(ast, 'помощь')}${stat(k + ' / ' + d, 'убийства / смерти')}${stat(sc, 'счёт всего')}</div>${chart}</div>
+    ${gear}
+    ${hist ? `<div class="card wrap"><h2>Последние бои</h2><table><tr><th>Дата</th><th>K</th><th>D</th><th>П</th><th>Счёт</th></tr>${hist}</table></div>` : '<div class="card mut">За выбранный период боёв нет.</div>'}`;
+  document.getElementById('pback').onclick = () => { tab = 'rating'; render(); };
+  const gh = document.getElementById('gear_host');
+  if (gh && prof) loadCatalog().catch(() => null).then(cat => renderGear(gh, gearOf(prof), byIdOf(cat)));
+  const dm = document.getElementById('pdm');
+  if (dm) dm.onclick = () => openDm(p.user_id);
+  body.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { period = Number(b.dataset.p); viewPlayer(); });
+}
+
+const idleStat = s => s.kills === 0 && s.deaths === 0 && s.assists === 0 && s.score === 0;
 
 async function viewHistory() {
   const body = document.getElementById('body');
-  const { data, error } = await sb.from('matches').select('id,played_at,mode,result,match_stats(nick_raw)')
-    .eq('clan_id', clan.id).order('played_at', { ascending: false }).limit(50);
-  if (error) return body.innerHTML = `<div class="card err">${esc(error.message)}</div>`;
-  if (!data.length) return body.innerHTML = '<div class="card mut">Боёв пока нет.</div>';
-  const rows = data.map(m => `<tr><td>${new Date(m.played_at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</td>
-    <td>${esc(m.mode || '—')}</td><td>${esc(m.result || '—')}</td>
-    <td style="white-space:normal"><details><summary>${m.match_stats.length} игроков</summary>${m.match_stats.map(s => esc(s.nick_raw)).join(', ')}</details></td>
-    <td>${canEdit() ? '<button class="ghost" data-del="' + m.id + '">Удалить</button>' : ''}</td></tr>`).join('');
-  body.innerHTML = `<div class="card wrap"><h2>История боёв</h2><table>
-    <tr><th>Дата</th><th>Режим</th><th>Итог</th><th>Участники</th><th></th></tr>${rows}</table></div>`;
+  const [mr, pr] = await Promise.all([
+    sb.from('matches').select('id,played_at,mode,result,place,team_score,extra,match_stats(player_id,nick_raw,kills,deaths,assists,score)')
+      .eq('clan_id', clan.id).order('played_at', { ascending: false }).limit(30),
+    sb.from('players').select('id,nick,active,joined_at').eq('clan_id', clan.id)
+  ]);
+  const err = mr.error || pr.error;
+  if (err) return body.innerHTML = failBox(err);
+  if (!mr.data.length) return body.innerHTML = '<div class="card mut">Боёв пока нет.</div>';
+  const nv = v => v == null ? '—' : v;
+  const card = (m, open) => {
+    const present = m.match_stats.filter(s => !idleStat(s)).sort((a, b) => (b.score || 0) - (a.score || 0));
+    const shown = new Set(present.map(s => s.player_id));
+    const absent = pr.data.filter(p => p.active && !shown.has(p.id) && !(p.joined_at && new Date(p.joined_at) > new Date(m.played_at)));
+    const teams = (m.extra && m.extra.teams) || [];
+    const opp = teams.filter(t => !t.own && !(m.place != null && t.place === m.place && t.score === m.team_score));
+    const rows = present.map(s => `<tr><td>${plLink(s.player_id, s.nick_raw)}</td><td>${nv(s.kills)}</td><td>${nv(s.deaths)}</td><td>${nv(s.assists)}</td><td>${nv(s.score)}</td></tr>`).join('')
+      + absent.map(p => `<tr class="dim"><td>${plLink(p.id, p.nick)}</td><td colspan="4">не явился</td></tr>`).join('');
+    return `<div class="card"><details ${open ? 'open' : ''}><summary><b>${fmtTime(m.played_at)}</b>${m.mode ? ' · ' + esc(m.mode) : ''}${m.result ? ' · ' + esc(m.result) : ''}${m.place ? ' · ' + m.place + ' место' : ''}
+      <span class="mut">· явилось ${present.length} из ${present.length + absent.length}</span></summary>
+      ${m.team_score != null ? `<p class="mut">Очки клана: ${m.team_score}</p>` : ''}
+      ${opp.length ? `<p class="mut" style="margin-bottom:2px">Противники:</p><div>${opp.map(t => `<span class="chip">${esc(t.name)} · ${nv(t.score)}${t.place ? ' (' + t.place + ' место)' : ''}</span>`).join('')}</div>` : ''}
+      <div class="wrap"><table><tr><th>Игрок</th><th>K</th><th>D</th><th>П</th><th>Счёт</th></tr>${rows}</table></div>
+      ${canEdit() ? `<button class="ghost" data-del="${m.id}" style="margin-top:8px">Удалить бой</button>` : ''}</details></div>`;
+  };
+  body.innerHTML = mr.data.map((m, i) => card(m, i === 0)).join('');
+  wirePl(body);
   body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
     if (!confirm('Удалить бой и всю его статистику?')) return;
     const { error: e } = await sb.from('matches').delete().eq('id', b.dataset.del);
@@ -614,7 +986,7 @@ async function viewRoster() {
   const cnt = id => players.filter(p => p.active && p.squad_id === id).length;
   const sqRows = squads.map(x => `<tr><td>${esc(x.name)}</td><td class="mut">${cnt(x.id)} игроков</td>
     <td><button class="ghost" data-dsq="${x.id}">Удалить</button></td></tr>`).join('');
-  const rows = players.map(p => `<tr><td>${esc(p.nick)}</td>
+  const rows = players.map(p => `<tr><td>${plLink(p.id, p.nick)}</td>
     <td><select data-sq="${p.id}">${opts(p.squad_id)}</select></td><td>${p.active ? 'в клане' : 'убран'}</td>
     <td><button class="ghost" data-id="${p.id}" data-a="${p.active}">${p.active ? 'Убрать' : 'Вернуть'}</button></td></tr>`).join('');
   body.innerHTML = `<div class="card wrap"><h2>Отряды</h2>
@@ -633,6 +1005,7 @@ async function viewRoster() {
     if (error) return alert(error.code === '23505' ? 'Отряд с таким названием уже есть' : error.message);
     again();
   };
+  wirePl(body);
   body.querySelectorAll('[data-dsq]').forEach(b => b.onclick = async () => {
     if (!confirm('Удалить отряд? Игроки останутся в клане без отряда.')) return;
     const { error } = await sb.from('squads').delete().eq('id', b.dataset.dsq);
@@ -673,31 +1046,36 @@ async function viewMatch() {
   const rows = players.map(p => `<tr data-pid="${p.id}" data-nick="${esc(p.nick)}" data-sq="${p.squad_id || ''}">
     <td><input type="checkbox" class="at"></td><td>${esc(p.nick)}</td><td class="mut">${esc(sqName[p.squad_id] || '—')}</td>
     <td><input type="number" min="0" class="k"></td><td><input type="number" min="0" class="d"></td>
-    <td><input type="number" min="0" class="dm"></td></tr>`).join('');
-  body.innerHTML = `<div class="card"><h2>Новый бой</h2>
+    <td><input type="number" min="0" class="ast"></td><td><input type="number" min="0" class="sc"></td></tr>`).join('');
+  body.innerHTML = `${importCardHtml()}<div class="card"><h2>Или внеси бой вручную</h2>
     <div class="row"><input type="datetime-local" id="dt" value="${now}">
     <input id="mode" placeholder="Режим (необязательно)">
     <select id="res"><option value="">Результат</option><option>победа</option><option>поражение</option></select>
     <select id="msq"><option value="">Отметить весь отряд…</option>${squads.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div>
-    <div class="wrap"><table><tr><th>Был</th><th>Игрок</th><th>Отряд</th><th>K</th><th>D</th><th>Урон</th></tr>${rows}</table></div>
+    <div class="row"><input type="number" id="mplace" min="1" placeholder="Место клана" style="width:140px"><input type="number" id="mscore" min="0" placeholder="Очки клана" style="width:140px"></div>
+    <p class="mut" style="margin:8px 0 4px">Противники (необязательно)</p><div id="opps">${oppRow()}</div>
+    <button class="ghost" id="oppadd" style="margin-bottom:12px">+ Противник</button>
+    <div class="wrap"><table><tr><th>Был</th><th>Игрок</th><th>Отряд</th><th>K</th><th>D</th><th>П</th><th>Счёт</th></tr>${rows}</table></div>
     <div class="row" style="margin-top:12px"><button id="save">Сохранить бой</button></div></div>`;
   document.getElementById('msq').onchange = e => {
     const id = e.target.value; if (!id) return;
     body.querySelectorAll('tr[data-pid]').forEach(r => { if (r.dataset.sq === id) r.querySelector('.at').checked = true; });
     e.target.value = '';
   };
+  wireImport(body);
+  document.getElementById('oppadd').onclick = () => { if (document.querySelectorAll('.opp').length < 6) document.getElementById('opps').insertAdjacentHTML('beforeend', oppRow()); };
   const num = el => el.value === '' ? null : Number(el.value);
   document.getElementById('save').onclick = async () => {
     const present = [...body.querySelectorAll('tr[data-pid]')].filter(r => r.querySelector('.at').checked);
     if (!present.length) return alert('Отметь хотя бы одного игрока');
     const { data: m, error } = await sb.from('matches').insert({
       clan_id: clan.id, played_at: new Date(document.getElementById('dt').value).toISOString(),
-      mode: document.getElementById('mode').value || null, result: document.getElementById('res').value || null,
+      mode: document.getElementById('mode').value || null, result: document.getElementById('res').value || null, ...manualMeta(),
       created_by: user.id }).select('id').single();
     if (error) return alert(error.message);
     const { error: e2 } = await sb.from('match_stats').insert(present.map(r => ({
       match_id: m.id, clan_id: clan.id, player_id: r.dataset.pid, nick_raw: r.dataset.nick,
-      kills: num(r.querySelector('.k')), deaths: num(r.querySelector('.d')), damage: num(r.querySelector('.dm')),
+      kills: num(r.querySelector('.k')), deaths: num(r.querySelector('.d')), assists: num(r.querySelector('.ast')), score: num(r.querySelector('.sc')),
       confirmed: true })));
     if (e2) return alert(e2.message);
     tab = 'rating'; render();
@@ -894,6 +1272,195 @@ async function viewThread(body) {
   };
   document.getElementById('dsend').onclick = send;
   document.getElementById('dmsg').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
+}
+
+const IMG_MAX = 1800;
+async function fileToJpegBase64(file) {
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, IMG_MAX / bmp.width);
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+  cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+  return cv.toDataURL('image/jpeg', 0.88).split(',')[1];
+}
+
+const normNick = s => String(s || '').toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
+const stripTag = s => s.includes('_') ? s.slice(s.indexOf('_') + 1) : s;
+const sameNick = (a, b) => {
+  const A = normNick(a), B = normNick(b), A2 = normNick(stripTag(a)), B2 = normNick(stripTag(b));
+  return !!A && !!B && (A === B || A2 === B || A === B2 || A2 === B2);
+};
+const toInt = v => v == null || v === '' ? null : (Number.isFinite(Number(v)) ? Math.round(Number(v)) : null);
+
+function cleanParsed(raw) {
+  const r = raw && typeof raw === 'object' ? raw : {};
+  const arr = x => Array.isArray(x) ? x : [];
+  return {
+    team: String(r.team || '').slice(0, 40), place: toInt(r.place), team_score: toInt(r.team_score),
+    timer: r.timer ? String(r.timer).slice(0, 10) : null,
+    teams: arr(r.teams).slice(0, 8).map(t => ({ name: String(t.name || '').slice(0, 40), score: toInt(t.score), place: toInt(t.place) })),
+    players: arr(r.players).slice(0, 60).map(p => ({ nick: String(p.nick || '').trim().slice(0, 40), kills: toInt(p.kills), deaths: toInt(p.deaths),
+      assists: toInt(p.assists), score: toInt(p.score), treasury: toInt(p.treasury), rank: p.rank ? String(p.rank).slice(0, 30) : null })).filter(p => p.nick)
+  };
+}
+
+function importCardHtml() {
+  return `<div class="card"><h2>Загрузить скриншот боя</h2>
+    <p class="mut">Экран «Сводка с поля боя» с таблицей игроков клана. Данные распознаются автоматически, перед сохранением ты их проверяешь.</p>
+    <input type="file" id="shot" accept="image/*">
+    <div class="row" style="margin-top:8px"><button id="shotgo">Распознать</button><button class="ghost" id="jsonopen">Вставить JSON</button></div>
+    <div id="jsonbox" style="display:none;margin-top:8px"><textarea id="jsontxt" placeholder='{"players":[{"nick":"Ник","kills":0,"deaths":0,"assists":0,"score":0}]}'></textarea>
+    <button id="jsongo" style="margin-top:8px">Загрузить JSON</button></div>
+    <p class="err" id="shoterr"></p></div>`;
+}
+
+function wireImport(body) {
+  const err = t => { document.getElementById('shoterr').textContent = t || ''; };
+  const open = async parsed => {
+    const { data, error } = await sb.from('players').select('*').eq('clan_id', clan.id);
+    if (error) return err(error.message);
+    showImport(body, parsed, data);
+  };
+  document.getElementById('jsonopen').onclick = () => { const b = document.getElementById('jsonbox'); b.style.display = b.style.display === 'none' ? 'block' : 'none'; };
+  document.getElementById('jsongo').onclick = () => {
+    let j; try { j = JSON.parse(val('jsontxt')); } catch (e) { return err('Не получилось прочитать JSON: ' + e.message); }
+    open(j);
+  };
+  document.getElementById('shotgo').onclick = async () => {
+    const f = document.getElementById('shot').files[0];
+    if (!f) return err('Выбери файл со скриншотом');
+    err('');
+    const b = document.getElementById('shotgo'); b.disabled = true; b.textContent = 'Распознаю…';
+    try {
+      const image = await fileToJpegBase64(f);
+      const { data, error } = await sb.functions.invoke('parse-battle', { body: { clan_id: clan.id, image, mime: 'image/jpeg' } });
+      if (error) {
+        let m = error.message;
+        try { const j = await error.context.json(); if (j.error) m = j.error; } catch (e) {}
+        throw new Error(m);
+      }
+      if (data && data.error) throw new Error(data.error);
+      await open(data);
+    } catch (e) {
+      err('Не удалось распознать: ' + e.message + '. Можно воспользоваться кнопкой «Вставить JSON» или внести бой вручную.');
+      b.disabled = false; b.textContent = 'Распознать';
+    }
+  };
+}
+
+function showImport(body, parsed, roster) {
+  const cp = cleanParsed(parsed);
+  if (!cp.players.length) { document.getElementById('shoterr').textContent = 'В данных нет игроков. Проверь скриншот или JSON.'; return; }
+  const rows = cp.players.map(p => ({ p, m: roster.find(r => sameNick(r.nick, p.nick)), zero: !(p.kills || p.deaths || p.assists || p.score) }));
+  const nv = v => v == null ? '' : v;
+  const now = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const tr = rows.map((x, i) => `<tr data-i="${i}"><td><input type="checkbox" class="at" ${x.zero ? '' : 'checked'}></td>
+    <td><input class="nk" value="${esc(x.p.nick)}" style="min-width:150px">
+    <div class="mut" style="font-size:12px">${x.m ? 'в составе' + (x.m.nick !== x.p.nick ? ': ' + esc(x.m.nick) : '') : 'новый игрок, добавится в состав'}${x.zero ? ' · все нули' : ''}${x.p.rank ? ' · ' + esc(x.p.rank) : ''}</div></td>
+    <td><input type="number" min="0" class="k" value="${nv(x.p.kills)}"></td><td><input type="number" min="0" class="d" value="${nv(x.p.deaths)}"></td>
+    <td><input type="number" min="0" class="ast" value="${nv(x.p.assists)}"></td><td><input type="number" min="0" class="sc" value="${nv(x.p.score)}"></td></tr>`).join('');
+  const teams = cp.teams.length ? '<p class="mut">Команды в бою: ' + cp.teams.map(t => esc(t.name) + ' ' + (t.score ?? '—') + (t.place ? ' (' + t.place + ' место)' : '')).join(' · ') + '</p>' : '';
+  body.innerHTML = `<div class="card"><h2>Проверь данные боя</h2>
+    <p class="mut">Распознавание может ошибаться: сверь ники и цифры со скриншотом и поправь. Игроки со всеми нулями отключены, включи их, если они были в бою.</p>${teams}
+    <div class="grid">${fld('Дата и время', `<input type="datetime-local" id="i_dt" value="${now}">`)}${fld('Режим (необязательно)', '<input id="i_mode">')}
+    ${fld('Место клана', `<input type="number" min="1" id="i_place" value="${nv(cp.place)}">`)}${fld('Очки клана', `<input type="number" min="0" id="i_score" value="${nv(cp.team_score)}">`)}
+    ${fld('Итог (необязательно)', '<select id="i_res"><option value="">—</option><option>победа</option><option>поражение</option></select>')}</div>
+    <div class="wrap"><table><tr><th>Был</th><th>Игрок</th><th>K</th><th>D</th><th>П</th><th>Счёт</th></tr>${tr}</table></div>
+    <div class="row" style="margin-top:12px"><button id="i_save">Сохранить бой</button><button class="ghost" id="i_cancel">Отмена</button></div></div>`;
+  document.getElementById('i_cancel').onclick = () => viewMatch();
+  const num = el => el.value === '' ? null : Number(el.value);
+  document.getElementById('i_save').onclick = async () => {
+    const pick = [...body.querySelectorAll('tr[data-i]')].filter(r => r.querySelector('.at').checked).map(r => {
+      const nick = r.querySelector('.nk').value.trim();
+      return { r, nick, m: roster.find(x => sameNick(x.nick, nick)), src: rows[Number(r.dataset.i)].p };
+    });
+    if (!pick.length) return alert('Отметь хотя бы одного игрока');
+    if (pick.some(x => !x.nick)) return alert('У всех отмеченных игроков должен быть ник');
+    if (new Set(pick.map(x => normNick(x.nick))).size !== pick.length) return alert('В списке повторяются ники');
+    const btn = document.getElementById('i_save'); btn.disabled = true;
+    const fail = m => { btn.disabled = false; alert(m); };
+    const ids = {};
+    const fresh = pick.filter(x => !x.m).map(x => ({ clan_id: clan.id, nick: x.nick }));
+    if (fresh.length) {
+      const { data, error } = await sb.from('players').upsert(fresh, { onConflict: 'clan_id,nick' }).select('id,nick');
+      if (error) return fail(error.message);
+      data.forEach(d => ids[d.nick] = d.id);
+    }
+    const back = pick.filter(x => x.m && !x.m.active).map(x => x.m.id);
+    if (back.length) await sb.from('players').update({ active: true }).in('id', back);
+    const { data: m, error: e1 } = await sb.from('matches').insert({
+      clan_id: clan.id, played_at: new Date(document.getElementById('i_dt').value).toISOString(),
+      mode: txt('i_mode'), result: txt('i_res'), place: numv('i_place'), team_score: numv('i_score'),
+      extra: { source: 'screenshot', timer: cp.timer, teams: cp.teams.map(t => ({ ...t, own: !!cp.team && normNick(t.name) === normNick(cp.team) })) }, created_by: user.id }).select('id').single();
+    if (e1) return fail(e1.message);
+    const { error: e2 } = await sb.from('match_stats').insert(pick.map(x => ({
+      match_id: m.id, clan_id: clan.id, player_id: x.m ? x.m.id : ids[x.nick], nick_raw: x.nick,
+      kills: num(x.r.querySelector('.k')), deaths: num(x.r.querySelector('.d')), assists: num(x.r.querySelector('.ast')), score: num(x.r.querySelector('.sc')),
+      extra: { treasury: x.src.treasury, rank: x.src.rank }, confirmed: true })));
+    if (e2) return fail(e2.message);
+    tab = 'rating'; render();
+  };
+}
+
+const EV_KIND = { tournament: 'Турнир', brawl: 'Потасовка', base: 'Захват базы', other: 'Другое' };
+const RSVP = { yes: 'Буду', maybe: 'Возможно', no: 'Не смогу' };
+const localDt = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+const evDate = iso => new Date(iso).toLocaleString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+async function viewEvents() {
+  const body = document.getElementById('body');
+  const since = new Date(Date.now() - 6 * 3600e3).toISOString();
+  const [ev, mb] = await Promise.all([
+    sb.from('clan_events').select('*').eq('clan_id', clan.id).gte('starts_at', since).order('starts_at').limit(30),
+    sb.from('clan_members').select('user_id,display_name').eq('clan_id', clan.id)
+  ]);
+  const err = ev.error || mb.error;
+  if (err) return body.innerHTML = failBox(err);
+  const ids = ev.data.map(e => e.id);
+  const rs = ids.length ? await sb.from('event_rsvps').select('event_id,user_id,answer').in('event_id', ids) : { data: [] };
+  if (rs.error) return body.innerHTML = failBox(rs.error);
+  const names = Object.fromEntries(mb.data.map(m => [m.user_id, m.display_name || 'без имени']));
+  const by = {}, mine = {};
+  rs.data.forEach(r => {
+    (by[r.event_id] = by[r.event_id] || { yes: [], maybe: [], no: [] })[r.answer].push(names[r.user_id] || 'вне клана');
+    if (r.user_id === user.id) mine[r.event_id] = r.answer;
+  });
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(20, 0, 0, 0);
+  const form = canEdit() ? `<div class="card"><h2>Новое событие</h2><div class="grid">
+    ${fld('Тип', `<select id="e_kind">${selOpts(EV_KIND, 'tournament')}</select>`)}${fld('Название (необязательно)', '<input id="e_title" maxlength="120">')}
+    ${fld('Дата и время', `<input type="datetime-local" id="e_dt" value="${localDt(tomorrow)}">`)}</div>
+    ${fld('Заметка (необязательно)', '<textarea id="e_note" maxlength="500"></textarea>')}<button id="e_add">Создать</button></div>` : '';
+  const card = e => {
+    const g = by[e.id] || { yes: [], maybe: [], no: [] };
+    return `<div class="card"><div class="rtitle"><span class="chip ok">${EV_KIND[e.kind]}</span><b>${esc(e.title)}</b></div>
+      <p class="mut">${evDate(e.starts_at)}</p>${e.note ? `<p>${esc(e.note)}</p>` : ''}
+      <p>Буду: <b>${g.yes.length}</b> · Возможно: <b>${g.maybe.length}</b> · Не смогу: <b>${g.no.length}</b></p>
+      <div class="row">${Object.entries(RSVP).map(([k, l]) => `<button class="ghost ${mine[e.id] === k ? 'on' : ''}" data-rsvp="${e.id}|${k}">${l}</button>`).join('')}</div>
+      <details><summary class="mut">Кто что ответил</summary>${Object.entries(RSVP).map(([k, l]) => `<p><b>${l}:</b> ${g[k].length ? g[k].map(n => esc(n)).join(', ') : '—'}</p>`).join('')}</details>
+      ${canEdit() ? `<button class="ghost" data-delev="${e.id}" style="margin-top:8px">Удалить</button>` : ''}</div>`;
+  };
+  body.innerHTML = form + (ev.data.length ? ev.data.map(card).join('') : '<div class="card mut">Ближайших событий нет.</div>');
+  const add = document.getElementById('e_add');
+  if (add) add.onclick = async () => {
+    const kind = val('e_kind'), dt = val('e_dt');
+    if (!dt) return alert('Укажи дату и время');
+    const { error } = await sb.from('clan_events').insert({ clan_id: clan.id, kind, title: txt('e_title') || EV_KIND[kind],
+      starts_at: new Date(dt).toISOString(), note: txt('e_note'), created_by: user.id });
+    if (error) return alert(error.message);
+    viewEvents();
+  };
+  body.querySelectorAll('[data-rsvp]').forEach(b => b.onclick = async () => {
+    const [eid, ans] = b.dataset.rsvp.split('|');
+    const { error } = await sb.from('event_rsvps').upsert({ event_id: eid, user_id: user.id, answer: ans, updated_at: new Date().toISOString() }, { onConflict: 'event_id,user_id' });
+    if (error) return alert(error.message);
+    const y = scrollY; await viewEvents(); scrollTo(0, y);
+  });
+  body.querySelectorAll('[data-delev]').forEach(b => b.onclick = async () => {
+    if (!confirm('Удалить событие?')) return;
+    const { error } = await sb.from('clan_events').delete().eq('id', b.dataset.delev);
+    if (error) return alert(error.message);
+    viewEvents();
+  });
 }
 
 sb.auth.onAuthStateChange(ev => { if (ev === 'SIGNED_OUT') showLogin(); });
