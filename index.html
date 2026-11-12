@@ -293,7 +293,7 @@ function viewStart() {
   document.getElementById('cb').onclick = async () => {
     const name = document.getElementById('cn').value.trim();
     if (!name) return;
-    const { error } = await sb.from('clans').insert({ name, owner_id: user.id, listed: true });
+    const { error } = await sb.from('clans').insert({ name, owner_id: user.id });
     if (error) return msg('Не удалось создать клан: ' + error.message);
     init();
   };
@@ -639,7 +639,7 @@ async function viewSettings() {
   body.innerHTML = `<div class="card"><h2>Клан в поиске</h2>
     <div class="row" style="align-items:center">${c.avatar_url ? `<img class="av" src="${esc(c.avatar_url)}" alt="">` : '<div class="av" style="background:var(--bd)"></div>'}
     <input type="file" id="s_file" accept="image/png,image/jpeg,image/webp">${c.avatar_url ? '<button class="ghost" id="s_rmav">Убрать аватарку</button>' : ''}</div>
-    <label class="chk"><input type="checkbox" id="s_listed" ${c.listed ? 'checked' : ''}> Показывать клан в поиске и принимать заявки</label><div class="grid">
+    <div class="grid">
     ${fld('Фракция', `<select id="s_faction">${selOpts(FACTIONS, c.faction, '—')}</select>`)}
     ${fld('Тир (заявлен лидером)', `<select id="s_tier">${selOpts(TIERS, c.tier, '—')}</select>`)}
     ${fld('Минимальная снаряга', `<select id="s_gear">${selOpts(GEAR, c.min_gear_level)}</select>`)}
@@ -661,12 +661,12 @@ async function viewSettings() {
   setupAvatar();
   viewVerification();
   document.getElementById('s_save').onclick = async () => {
-    const upd = { listed: document.getElementById('s_listed').checked, faction: txt('s_faction'), tier: txt('s_tier'),
+    const upd = { faction: txt('s_faction'), tier: txt('s_tier'),
       min_gear_level: Number(val('s_gear')), min_kd: numv('s_kd'), min_ehp: numv('s_ehp'), min_speed: numv('s_speed'), chat_mode: val('s_chat'), links: parseLinks(val('s_links')), tournaments_per_week: Number(val('s_tpw')),
       brawls_per_week: Number(val('s_bpw')), open_slots: numv('s_slots') || 0, contact: txt('s_contact'),
       needs_mic: document.getElementById('s_mic').checked, about: txt('s_about'),
       goals: [...body.querySelectorAll('[data-goal]:checked')].map(x => x.dataset.goal) };
-    if (upd.listed && !upd.faction) return alert('Укажи фракцию клана');
+    if (!upd.faction) return alert('Укажи фракцию клана');
     if (upd.links.length > 6 || upd.links.some(l => !safeUrl(l.url))) return alert('Ссылок не больше 6, каждая должна начинаться с http:// или https://');
     const { data: saved, error: e } = await sb.from('clans').update(upd).eq('id', clan.id).select().single();
     if (e) return alert('Не удалось сохранить: ' + e.message);
@@ -685,11 +685,13 @@ async function viewClanTab() {
   const c = Object.assign({}, c0.data, dir.data || {});
   const reqs = [`Снаряга от: ${GEAR[c.min_gear_level]}`, c.min_kd ? `K/D от ${c.min_kd}` : '', c.min_ehp ? `Приведёнка от ${c.min_ehp}` : '',
     c.min_speed ? `Скорость от ${c.min_speed}` : '', c.needs_mic ? 'Нужен микрофон' : ''].filter(Boolean).map(t => `<p>• ${t}</p>`).join('');
+  const missing = [!c.faction && 'фракцию', !c.tier && 'тир', !(c.goals || []).length && 'цели клана', !c.about && 'описание', !c.contact && 'контакт'].filter(Boolean);
   body.innerHTML = `<div class="card"><div class="brand" style="align-items:flex-start;gap:14px">${clanAv(c, 'lg')}
       <div><h2 style="margin:0 0 8px">${esc(c.name)}</h2>${tierBadge(c)}<span class="chip">${FACTIONS[c.faction] || 'Фракция не указана'}</span>
-      ${c.roster_size != null ? `<span class="chip">Участников: ${c.roster_size}</span>` : ''}${c.listed ? '' : '<span class="chip err">скрыт из поиска</span>'}</div></div>
+      ${c.roster_size != null ? `<span class="chip">Участников: ${c.roster_size}</span>` : ''}</div></div>
     ${c.about ? `<p style="margin-top:10px">${esc(c.about)}</p>` : '<p class="mut" style="margin-top:10px">Описание пока не заполнено.</p>'}
     ${linksHtml(c.links)}${c.contact ? `<p class="mut">Контакт: ${esc(c.contact)}</p>` : ''}</div>
+    ${canEdit() && missing.length ? `<div class="card" style="border-color:var(--ac)"><h2>Профиль клана не заполнен</h2><p>Клан уже виден всем в поиске, но без этих данных новичкам сложно его оценить: не указаны ${missing.join(', ')}.</p><div class="row"><button id="cl_fill">Заполнить сейчас</button></div></div>` : ''}
     <div class="card"><h2>Чем занимается клан</h2><div>${(c.goals || []).map(g => `<span class="chip">${esc(GOALS[g])}</span>`).join('') || '<span class="mut">Цель не указана</span>'}</div>
       <p class="mut">Турниров в неделю: ${c.tournaments_per_week} · потасовок в неделю: ${c.brawls_per_week}</p></div>
     <div class="card"><h2>Требования к новичкам</h2>${reqs || '<p class="mut">Требований нет.</p>'}</div>
@@ -698,7 +700,9 @@ async function viewClanTab() {
       <p>Клан будет удалён безвозвратно: участники, заявки и статистика. Для подтверждения введи название клана: <b>${esc(clan.name)}</b></p>
       <div class="row"><input id="cl_dname" placeholder="Название клана"><button id="cl_disband" class="ghost">Распустить</button></div></div>` : ''}`;
   const ed = document.getElementById('cl_edit');
+  const fl = document.getElementById('cl_fill');
   if (ed) ed.onclick = () => { tab = 'settings'; render(); };
+  if (fl) fl.onclick = () => { tab = 'settings'; render(); };
   const db = document.getElementById('cl_disband');
   if (db) db.onclick = async () => {
     if (val('cl_dname').trim() !== clan.name) return alert('Название не совпадает — роспуск отменён.');
