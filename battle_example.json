@@ -1,0 +1,21 @@
+{
+  "team": "No Quarter",
+  "team_score": 1683,
+  "place": 1,
+  "timer": "00:04",
+  "teams": [
+    { "name": "No Quarter", "score": 1683, "place": 1 },
+    { "name": "Орден Чести", "score": 1192, "place": 2 },
+    { "name": "Warriors infinix", "score": 0, "place": 3 },
+    { "name": "Москва", "score": 0, "place": 4 }
+  ],
+  "players": [
+    { "nick": "SuperSpringTrap", "kills": 8, "deaths": 3, "assists": 0, "treasury": 35924, "score": 6891, "rank": "Полковник" },
+    { "nick": "ZipkaXXL", "kills": 2, "deaths": 4, "assists": 1, "treasury": 4585, "score": 5754, "rank": "Сержант" },
+    { "nick": "lekabwd", "kills": 7, "deaths": 4, "assists": 1, "treasury": 10890, "score": 5400, "rank": "Офицер" },
+    { "nick": "Sewenn", "kills": 1, "deaths": 2, "assists": 0, "treasury": 10032, "score": 5322, "rank": "Сержант" },
+    { "nick": "FrostySS", "kills": 0, "deaths": 7, "assists": 3, "treasury": 10728, "score": 3261, "rank": "Сержант" },
+    { "nick": "Ret_wX", "kills": 2, "deaths": 5, "assists": 0, "treasury": 4372, "score": 2491, "rank": "Сержант" },
+    { "nick": "SST_angrybambr", "kills": 0, "deaths": 0, "assists": 0, "treasury": 0, "score": 0, "rank": "Лидер" }
+  ]
+}
