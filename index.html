@@ -96,6 +96,7 @@ button.sm{padding:4px 10px;font-size:13px}
 .gi{width:52px;height:52px;object-fit:contain;flex:none;border-radius:8px;background:#0e0c14}
 .gi.ph{display:flex;align-items:center;justify-content:center;color:var(--mut)}
 .prow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.cdet{padding:0 0 10px 58px}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
 .stat{background:#14121d;border:1px solid var(--bd);border-radius:10px;padding:10px}
 .stat b{display:block;font-size:20px}
@@ -197,6 +198,10 @@ function showLogin(errText, invited) {
 let hubNote = '';
 let isAdmin = false;
 let unread = 0, chan = null, dmPartner = null, dmListener = null, dmChan = null, dmChanUser = null;
+const QUICK_DEF = ['rating', 'match', 'events', 'chat'];
+const QUICK_KEY = 'cp_quick_tabs';
+const loadQuick = () => { try { const v = JSON.parse(localStorage.getItem(QUICK_KEY)); return Array.isArray(v) ? v : null; } catch (e) { return null; } };
+let quickTabs = loadQuick() || QUICK_DEF.slice();
 const FACTIONS = { svoboda: 'Свобода', dolg: 'Долг', naemniki: 'Наёмники', zavet: 'Завет' };
 const GOALS = { tournaments: 'Рейтинговые турниры', brawls: 'Потасовки', bases: 'Захват баз', chrono: 'Хроноразломы и аирдропы', open: 'Открытый мир и фарм', casual: 'Без напряга' };
 const GEAR = { 1: 'Ветеранская', 2: 'Мастерская', 3: 'Мастерская +10', 4: 'Мастерская +15' };
@@ -220,9 +225,9 @@ function shell(title, tabs, views, again, icon, primary) {
   const nav = tabs.map(([id, l]) => (id === 'dm' ? '<div class="mut grp">Аккаунт</div>' : '') +
     `<button class="navi ${tab === id ? 'on' : ''}" data-t="${id}"><span>${l}</span>${id === 'dm' ? cnt : ''}</button>`).join('');
   app.innerHTML = `<div class="top"><span class="brand"><button class="ghost" id="menu" aria-label="Меню">☰</button>${logo}<h1>${esc(title)}</h1></span>
-    <span class="topr"><button class="ghost ${tab === 'dm' ? 'on' : ''}" data-t="dm" aria-label="Сообщения">✉ ${cnt}</button>
+    <span class="topr"><button class="ghost" id="qbtn" aria-label="Настроить быстрые вкладки">⚙</button><button class="ghost ${tab === 'dm' ? 'on' : ''}" data-t="dm" aria-label="Сообщения">✉ ${cnt}</button>
     <button class="ghost avb ${tab === 'profile' ? 'on' : ''}" data-t="profile" aria-label="Профиль">${md.avatar_url ? '<img class="av sm" referrerpolicy="no-referrer" src="' + esc(md.avatar_url) + '" alt="">' : 'Профиль'}</button></span></div>
-    <div class="tabs">${primary.filter(id => label[id]).map(id => `<button class="ghost ${tab === id ? 'on' : ''}" data-t="${id}">${label[id]}</button>`).join('')}</div>
+    <div class="tabs">${primary.filter(id => quickTabs.includes(id) && label[id]).map(id => `<button class="ghost ${tab === id ? 'on' : ''}" data-t="${id}">${label[id]}</button>`).join('')}</div>
     <div id="body"></div>
     <div class="scrim" id="scrim"></div>
     <aside class="drawer" id="drawer"><div class="brand" style="margin-bottom:8px">${logo}<b>${esc(title)}</b></div>
@@ -234,21 +239,37 @@ function shell(title, tabs, views, again, icon, primary) {
   scrim.onclick = () => toggle(false);
   document.getElementById('out').onclick = async () => { await sb.auth.signOut(); init(); };
   app.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { tab = b.dataset.t; again(); });
+  const qbtn = document.getElementById('qbtn');
+  if (qbtn) qbtn.onclick = () => {
+    const sc = document.createElement('div'); sc.className = 'scrim open'; sc.style.zIndex = '40';
+    const sh = document.createElement('div'); sh.className = 'sheet open'; sh.style.zIndex = '50';
+    sh.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:0"><h2 style="margin:0">Быстрые вкладки</h2><button class="ghost" id="qx">Готово</button></div>
+      <p class="mut">Отметь вкладки, которые закрепить сверху. Настройка действует во всех разделах и хранится в этом браузере.</p>
+      ${tabs.map(([id, l]) => `<label class="chk"><input type="checkbox" data-q="${id}" ${quickTabs.includes(id) ? 'checked' : ''}> ${esc(l)}</label>`).join('')}`;
+    document.body.append(sc, sh);
+    const close = () => { sc.remove(); sh.remove(); };
+    sh.querySelector('#qx').onclick = () => {
+      quickTabs = [...sh.querySelectorAll('[data-q]:checked')].map(x => x.dataset.q);
+      localStorage.setItem(QUICK_KEY, JSON.stringify(quickTabs));
+      close(); again();
+    };
+    sc.onclick = close;
+  };
   views[tab]();
 }
 
 function render() {
   const tabs = [['rating', 'Рейтинг']];
   if (canEdit()) tabs.push(['match', 'Новый бой']);
-  tabs.push(['history', 'История']);
+  tabs.push(['history', 'История'], ['clan', 'Профиль клана']);
   if (canEdit()) tabs.push(['roster', 'Состав'], ['apps', 'Заявки']);
   tabs.push(['events', 'События'], ['chat', 'Чат клана'], ['team', 'Команда']);
-  if (myRole === 'owner') tabs.push(['settings', 'Клан в поиске']);
+  if (myRole === 'owner') tabs.push(['settings', 'Настройки клана']);
   tabs.push(['catalog', 'Каталог снаряжения'], ['dm', 'Сообщения'], ['profile', 'Профиль']);
   if (isAdmin) tabs.push(['admin', 'Модерация']);
   if (tab !== 'player' && !tabs.some(t => t[0] === tab)) tab = 'rating';
   shell(clan.name, tabs, { rating: viewRating, match: viewMatch, history: viewHistory, roster: viewRoster, team: viewTeam, apps: viewApps,
-    settings: viewSettings, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm, events: viewEvents, player: viewPlayer, catalog: viewCatalog }, render, clan.avatar_url, ['rating', 'match', 'events', 'chat']);
+    settings: viewSettings, clan: viewClanTab, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm, events: viewEvents, player: viewPlayer, catalog: viewCatalog }, render, clan.avatar_url, ['rating', 'match', 'events', 'chat']);
 }
 
 function renderHub() {
@@ -269,7 +290,7 @@ function viewStart() {
   document.getElementById('cb').onclick = async () => {
     const name = document.getElementById('cn').value.trim();
     if (!name) return;
-    const { error } = await sb.from('clans').insert({ name, owner_id: user.id });
+    const { error } = await sb.from('clans').insert({ name, owner_id: user.id, listed: true });
     if (error) return msg('Не удалось создать клан: ' + error.message);
     init();
   };
@@ -309,6 +330,7 @@ async function viewProfile() {
   gearEditor(document.getElementById('gear_edit'), G, byIdOf(cat));
   document.getElementById('p_save').onclick = async () => {
     const clean = k => G[k].filter(x => x.n).slice(0, 6).map(x => ({ n: x.n, p: x.p || null, e: x.e ?? null, t: x.t || null, id: x.id || null,
+      ...(k === 'armor' ? { k: x.k || null } : {}),
       b: k === 'container' ? (x.b || []).slice(0, 12).map(a => a && a.n ? { n: a.n, p: a.p || null } : null) : undefined }));
     const out = { armor: clean('armor'), weapon: clean('weapon'), secondary: clean('secondary'), container: clean('container') };
     const a0 = out.armor[0] || {}, w0 = out.weapon[0] || {};
@@ -649,6 +671,42 @@ async function viewSettings() {
   };
 }
 
+async function viewClanTab() {
+  const body = document.getElementById('body');
+  const [c0, dir] = await Promise.all([
+    sb.from('clans').select('*').eq('id', clan.id).single(),
+    sb.from('clan_directory').select('*').eq('id', clan.id).maybeSingle()
+  ]);
+  if (c0.error) return body.innerHTML = failBox(c0.error);
+  const c = Object.assign({}, c0.data, dir.data || {});
+  const reqs = [`Снаряга от: ${GEAR[c.min_gear_level]}`, c.min_kd ? `K/D от ${c.min_kd}` : '', c.min_ehp ? `Приведёнка от ${c.min_ehp}` : '',
+    c.min_speed ? `Скорость от ${c.min_speed}` : '', c.needs_mic ? 'Нужен микрофон' : ''].filter(Boolean).map(t => `<p>• ${t}</p>`).join('');
+  body.innerHTML = `<div class="card"><div class="brand" style="align-items:flex-start;gap:14px">${clanAv(c, 'lg')}
+      <div><h2 style="margin:0 0 8px">${esc(c.name)}</h2>${tierBadge(c)}<span class="chip">${FACTIONS[c.faction] || 'Фракция не указана'}</span>
+      ${c.roster_size != null ? `<span class="chip">Участников: ${c.roster_size}</span>` : ''}${c.listed ? '' : '<span class="chip err">скрыт из поиска</span>'}</div></div>
+    ${c.about ? `<p style="margin-top:10px">${esc(c.about)}</p>` : '<p class="mut" style="margin-top:10px">Описание пока не заполнено.</p>'}
+    ${linksHtml(c.links)}${c.contact ? `<p class="mut">Контакт: ${esc(c.contact)}</p>` : ''}</div>
+    <div class="card"><h2>Чем занимается клан</h2><div>${(c.goals || []).map(g => `<span class="chip">${esc(GOALS[g])}</span>`).join('') || '<span class="mut">Цель не указана</span>'}</div>
+      <p class="mut">Турниров в неделю: ${c.tournaments_per_week} · потасовок в неделю: ${c.brawls_per_week}</p></div>
+    <div class="card"><h2>Требования к новичкам</h2>${reqs || '<p class="mut">Требований нет.</p>'}</div>
+    ${myRole === 'owner' ? `<div class="row" style="margin-top:12px"><button id="cl_edit">Редактировать профиль клана</button></div>
+    <div class="card err" style="margin-top:12px"><h2>Распустить клан</h2>
+      <p>Клан будет удалён безвозвратно: участники, заявки и статистика. Для подтверждения введи название клана: <b>${esc(clan.name)}</b></p>
+      <div class="row"><input id="cl_dname" placeholder="Название клана"><button id="cl_disband" class="ghost">Распустить</button></div></div>` : ''}`;
+  const ed = document.getElementById('cl_edit');
+  if (ed) ed.onclick = () => { tab = 'settings'; render(); };
+  const db = document.getElementById('cl_disband');
+  if (db) db.onclick = async () => {
+    if (val('cl_dname').trim() !== clan.name) return alert('Название не совпадает — роспуск отменён.');
+    if (!confirm('Точно распустить клан «' + clan.name + '»? Это действие нельзя отменить.')) return;
+    db.disabled = true;
+    const { error } = await sb.from('clans').delete().eq('id', clan.id);
+    if (error) { db.disabled = false; return alert('Не удалось распустить клан: ' + error.message + '\n\nЕсли ошибка упоминает row-level security / policy — в Supabase нужна политика удаления клана для владельца.'); }
+    alert('Клан распущен.');
+    init();
+  };
+}
+
 let period = 30;
 const failBox = e => '<div class="card err">' + esc(e.message) + (/squads/i.test(e.message) ? '<br>Выполни squads.sql в Supabase → SQL Editor.' : '') + (/clan_invites|display_name|touch_member|join_clan|create_invite/i.test(e.message) ? '<br>Выполни invites.sql в Supabase → SQL Editor.' : '') + (/profiles|clan_directory|clan_applications|apply_to_clan|decide_application|min_gear_level/i.test(e.message) ? '<br>Выполни directory.sql в Supabase → SQL Editor.' : '') + (/avatar_url|min_speed|speed|links/i.test(e.message) ? '<br>Выполни clan_profile.sql в Supabase → SQL Editor.' : '') + (/verification|platform_admins|verified_tier|request_verification|review_verification/i.test(e.message) ? '<br>Выполни verification.sql в Supabase → SQL Editor.' : '') + (/clan_messages|direct_messages|user_cards|chat_mode|touch_card/i.test(e.message) ? '<br>Выполни chat.sql в Supabase → SQL Editor.' : '') + (/clan_events|event_rsvps|team_score/i.test(e.message) ? '<br>Выполни matches_events.sql в Supabase → SQL Editor.' : '') + '</div>';
 let ratingSquad = '';
@@ -707,6 +765,8 @@ const ICON_BASE = 'https://raw.githubusercontent.com/EXBO-Studio/stalzone-databa
 const iconUrl = p => /^\/icons\/[\w\-\/]+\.png$/.test(p || '') ? ICON_BASE + p : null;
 const iconImg = (p, cls) => { const u = iconUrl(p); return u ? `<img class="gi ${cls || ''}" loading="lazy" src="${esc(u)}" alt="">` : `<div class="gi ph ${cls || ''}">?</div>`; };
 const avImg = (u, cls) => u ? `<img class="av ${cls || ''}" referrerpolicy="no-referrer" src="${esc(u)}" alt="">` : '';
+const safeUrl = u => /^https?:\/\//i.test(u || '');
+const linksHtml = links => (links || []).length ? '<div class="row wrap" style="margin-top:8px">' + links.map(l => `<a class="chip" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label || 'Ссылка')}</a>`).join('') + '</div>' : '';
 const RANKS = { NEWBIE: 'Новичок', STALKER: 'Сталкер', VETERAN: 'Ветеран', MASTER: 'Мастер', LEGEND: 'Легенда' };
 const RANK_ORDER = ['LEGEND', 'MASTER', 'VETERAN', 'STALKER', 'NEWBIE', ''];
 const CAT_RU = { 'armor/combat': 'Боевая броня', 'armor/combined': 'Комбинированная броня', 'armor/scientist': 'Научная броня', 'armor/clothes': 'Одежда', 'armor/device': 'Устройства',
@@ -724,9 +784,9 @@ async function loadCatalog() {
   CATALOG = await r.json();
   return CATALOG;
 }
-function searchCatalog(cat, group, q, rank) {
+function searchCatalog(cat, group, q, rank, kfilter) {
   const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-  return cat.filter(x => (!group || CAT_GROUPS[group][1](x.c)) && (!rank || x.r === rank) && words.every(w => (x.n + ' ' + x.e).toLowerCase().includes(w)))
+  return cat.filter(x => (!group || CAT_GROUPS[group][1](x.c)) && (!rank || x.r === rank) && (!kfilter || x.k === kfilter) && words.every(w => (x.n + ' ' + x.e).toLowerCase().includes(w)))
     .sort((a, b) => RANK_ORDER.indexOf(a.r) - RANK_ORDER.indexOf(b.r) || a.n.localeCompare(b.n, 'ru'));
 }
 const catRow = (x, attr) => `<div class="prow" ${attr || ''}>${iconImg(x.p)}<div style="flex:1;min-width:0"><b>${esc(x.n)}</b>${x.e && x.e !== x.n ? `<div class="mut" style="font-size:12px">${esc(x.e)}</div>` : ''}
@@ -735,10 +795,13 @@ const catRow = (x, attr) => `<div class="prow" ${attr || ''}>${iconImg(x.p)}<div
 async function openPicker(group, onPick) {
   let cat;
   try { cat = await loadCatalog(); } catch (e) { return alert(e.message); }
+  const classes = group === 'armor' ? [...new Set(cat.filter(x => x.k).map(x => x.k))].sort((a, b) => a.localeCompare(b, 'ru')) : null;
   const scrim = document.createElement('div'); scrim.className = 'scrim open'; scrim.style.zIndex = '40';
   const box = document.createElement('div'); box.className = 'sheet open'; box.style.zIndex = '50';
   box.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;margin:0"><h2 style="margin:0">${CAT_GROUPS[group][0]}</h2><button class="ghost" id="pk_x">Закрыть</button></div>
-    <input id="pk_q" placeholder="Поиск по названию (по-русски или по-английски)" style="width:100%;margin:10px 0"><div id="pk_list"></div>
+    <input id="pk_q" placeholder="Поиск по названию (по-русски или по-английски)" style="width:100%;margin:10px 0">
+    ${classes ? `<select id="pk_k" style="width:100%;margin:0 0 10px"><option value="">Любой класс</option>${classes.map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join('')}</select>` : ''}
+    <div id="pk_list"></div>
     <p class="mut" style="margin-top:12px">Нет в списке? Укажи название вручную:</p>
     <div class="row"><input id="pk_own" maxlength="60" placeholder="Своё название" style="flex:1 1 160px"><button class="ghost" id="pk_set">Использовать</button></div>
     <p class="mut" style="font-size:12px">Данные и иконки предметов: открытая база EXBO.</p>`;
@@ -746,11 +809,13 @@ async function openPicker(group, onPick) {
   const close = () => { scrim.remove(); box.remove(); };
   const list = box.querySelector('#pk_list');
   const paint = () => {
-    const res = searchCatalog(cat, group, box.querySelector('#pk_q').value, '').slice(0, 40);
+    const kf = classes ? box.querySelector('#pk_k').value : '';
+    const res = searchCatalog(cat, group, box.querySelector('#pk_q').value, '', kf).slice(0, 40);
     list.innerHTML = res.length ? res.map(x => catRow(x, `data-id="${x.i}"`)).join('') : '<p class="mut">Ничего не найдено.</p>';
-    list.querySelectorAll('[data-id]').forEach(el => el.onclick = () => { const x = cat.find(y => y.i === el.dataset.id); close(); onPick({ name: x.n, icon: x.p, id: x.i }); });
+    list.querySelectorAll('[data-id]').forEach(el => el.onclick = () => { const x = cat.find(y => y.i === el.dataset.id); close(); onPick({ name: x.n, icon: x.p, id: x.i, k: x.k || null }); });
   };
   box.querySelector('#pk_q').oninput = paint;
+  if (classes) box.querySelector('#pk_k').onchange = paint;
   box.querySelector('#pk_x').onclick = close; scrim.onclick = close;
   box.querySelector('#pk_set').onclick = () => { const t = box.querySelector('#pk_own').value.trim(); if (!t) return; close(); onPick({ name: t, icon: null }); };
   paint();
@@ -769,8 +834,16 @@ async function viewCatalog() {
   const paint = () => {
     const res = searchCatalog(cat, catGroup, catQ, catRank);
     document.getElementById('c_n').textContent = 'Найдено предметов: ' + res.length;
-    document.getElementById('c_list').innerHTML = (res.slice(0, catLimit).map(x => catRow(x)).join('') || '<p class="mut">Ничего не найдено.</p>')
+    document.getElementById('c_list').innerHTML = (res.slice(0, catLimit).map(x => catRow(x, `data-i="${x.i}"`)).join('') || '<p class="mut">Ничего не найдено.</p>')
       + (res.length > catLimit ? '<div class="row" style="margin-top:10px"><button class="ghost" id="c_more">Показать ещё</button></div>' : '');
+    const byId = byIdOf(cat);
+    document.querySelectorAll('#c_list [data-i]').forEach(el => el.onclick = () => {
+      const next = el.nextElementSibling;
+      if (next && next.classList.contains('cdet')) { next.remove(); return; }
+      const det = document.createElement('div'); det.className = 'cdet';
+      det.innerHTML = itemStatsHtml(byId[el.dataset.i], byId) || '<p class="mut" style="margin:2px 0 8px">Статы предмета не найдены в базе EXBO.</p>';
+      el.after(det);
+    });
     const more = document.getElementById('c_more');
     if (more) more.onclick = () => { catLimit += 60; paint(); };
   };
@@ -791,10 +864,10 @@ function gearOf(p) {
   return out;
 }
 const slotsFor = (it, byId) => Math.min(12, (it && it.id && byId[it.id] && byId[it.id].sl) || 6);
-const contStatsHtml = (it, byId) => {
+const itemStatsHtml = (it, byId) => {
   const c = it && it.id && byId[it.id];
-  if (!c || !c.s) return '';
-  return (c.cl ? `<span class="chip" style="margin:8px 0 0">${esc(c.cl)}</span>` : '') + `<div class="cstats">${c.s.map(([k, v]) => `<div class="cs"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+  if (!c || !(Array.isArray(c.s) && c.s.length)) return '';
+  return (c.cl ? `<span class="chip" style="margin:8px 0 0">${esc(c.cl)}</span>` : '') + (c.k ? `<span class="chip" style="margin:8px 0 0">${esc(c.k)}</span>` : '') + `<div class="cstats">${c.s.map(([k, v]) => `<div class="cs"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
 };
 
 function renderGear(host, G, byId) {
@@ -805,9 +878,10 @@ function renderGear(host, G, byId) {
     let inner = '<p class="mut">Не указано</p>';
     if (it) {
       inner = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${esc(it.n)}</b>${it.e != null ? ` <span class="chip ok" style="margin:0">+${esc(it.e)}</span>` : ''}${k === 'armor' && it.t ? `<div class="mut" style="font-size:12px">${esc(ARMOR[it.t] || '')}</div>` : ''}</div></div>`;
+      inner += itemStatsHtml(it, byId);
       if (k === 'container') {
         const n = slotsFor(it, byId);
-        inner += contStatsHtml(it, byId) + `<div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
+        inner += `<div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
           return `<div class="slot">${a ? `${iconImg(a.p, 'sm')}<span>${esc(a.n)}</span>` : '<span class="mut">пусто</span>'}</div>`; }).join('')}</div>`;
       }
     }
@@ -829,15 +903,15 @@ function gearEditor(host, G, byId) {
     const i = cur[k], it = list[i];
     const chips = `<div class="gsets"><span class="mut">Сет</span>${list.map((_, j) => `<button class="ghost sm ${j === i ? 'on' : ''}" data-set="${k}|${j}">${j + 1}</button>`).join('')}${list.length < 6 ? `<button class="ghost sm" data-add="${k}">+</button>` : ''}</div>`;
     if (!it) return `<div class="gcard"><b>${GEAR_KINDS[k]}</b>${chips}<p class="mut">Сетов пока нет. Нажми «+».</p></div>`;
-    const tile = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${it.n ? esc(it.n) : '<span class="mut">Не выбрано</span>'}</b></div></div>`;
+    const tile = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${it.n ? esc(it.n) : '<span class="mut">Не выбрано</span>'}</b>${k === 'armor' && it.k ? ` <span class="chip" style="margin:0">${esc(it.k)}</span>` : ''}${k === 'armor' && it.t ? `<div class="mut" style="font-size:12px">${esc(ARMOR[it.t] || '')}</div>` : ''}</div></div>`;
     const acts = `<div class="row" style="margin-top:8px"><button class="ghost sm" data-pick="${k}">${it.n ? 'Сменить' : 'Выбрать из каталога'}</button>${i > 0 ? `<button class="ghost sm" data-main="${k}">Сделать основным</button>` : ''}<button class="ghost sm" data-gdel="${k}">Удалить сет</button></div>`;
     let more;
     if (k === 'container') {
       const n = slotsFor(it, byId);
-      more = contStatsHtml(it, byId) + `<p class="mut" style="margin:10px 0 0">Сборка (артефакты в слотах)</p><div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
+      more = itemStatsHtml(it, byId) + `<p class="mut" style="margin:10px 0 0">Сборка (артефакты в слотах)</p><div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
         return `<div class="slot edit" data-slot="${s}">${a ? `${iconImg(a.p, 'sm')}<span>${esc(a.n)}</span><button class="ghost x" data-clr="${s}">×</button>` : '<span class="mut">+</span>'}</div>`; }).join('')}</div>`;
     } else {
-      more = `<div class="row" style="margin-top:8px">${k === 'armor' ? `<select data-atype="1">${selOpts(ARMOR, it.t, 'Тип брони')}</select>` : ''}<input type="number" min="0" max="15" data-ench="${k}" placeholder="Заточка 0–15" value="${esc(it.e)}" style="width:140px"></div>`;
+      more = itemStatsHtml(it, byId) + `<div class="row" style="margin-top:8px">${k === 'armor' ? `<select data-atype="1">${selOpts(ARMOR, it.t, 'Тип брони')}</select>` : ''}<input type="number" min="0" max="15" data-ench="${k}" placeholder="Заточка 0–15" value="${esc(it.e)}" style="width:140px"></div>`;
     }
     return `<div class="gcard"><b>${GEAR_KINDS[k]}</b>${chips}${tile}${acts}${more}</div>`;
   };
@@ -850,7 +924,7 @@ function gearEditor(host, G, byId) {
       G[k].splice(cur[k], 1); cur[k] = Math.max(0, cur[k] - 1); draw(); });
     host.querySelectorAll('[data-main]').forEach(b => b.onclick = () => { const k = b.dataset.main; const [x] = G[k].splice(cur[k], 1); G[k].unshift(x); cur[k] = 0; draw(); });
     host.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { const k = b.dataset.pick;
-      openPicker(GROUP[k], it => { Object.assign(G[k][cur[k]], { n: it.name, p: it.icon, id: it.id || null }); draw(); }); });
+      openPicker(GROUP[k], it => { const upd = { n: it.name, p: it.icon, id: it.id || null }; if (k === 'armor') upd.k = it.k || null; Object.assign(G[k][cur[k]], upd); draw(); }); });
     host.querySelectorAll('[data-ench]').forEach(el => el.oninput = () => { const k = el.dataset.ench;
       G[k][cur[k]].e = el.value === '' ? null : Math.max(0, Math.min(15, Math.round(Number(el.value)))); });
     host.querySelectorAll('[data-atype]').forEach(el => el.onchange = () => { G.armor[cur.armor].t = el.value || null; });
