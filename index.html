@@ -332,7 +332,7 @@ async function viewProfile() {
     <button id="p_save">Сохранить профиль</button></div>`;
   gearEditor(document.getElementById('gear_edit'), G, byIdOf(cat));
   document.getElementById('p_save').onclick = async () => {
-    const clean = k => G[k].filter(x => x.n).slice(0, 6).map(x => ({ n: x.n, p: x.p || null, e: x.e ?? null, t: x.t || null, id: x.id || null,
+    const clean = k => G[k].filter(x => x.n).slice(0, 6).map(x => ({ n: x.n, p: x.p || null, e: x.e ?? null, id: x.id || null,
       ...(k === 'armor' ? { k: x.k || null } : {}),
       b: k === 'container' ? (x.b || []).slice(0, 12).map(a => a && a.n ? { n: a.n, p: a.p || null } : null) : undefined }));
     const out = { armor: clean('armor'), weapon: clean('weapon'), secondary: clean('secondary'), container: clean('container') };
@@ -868,10 +868,46 @@ function gearOf(p) {
   return out;
 }
 const slotsFor = (it, byId) => Math.min(12, (it && it.id && byId[it.id] && byId[it.id].sl) || 6);
-const itemStatsHtml = (it, byId) => {
-  const c = it && it.id && byId[it.id];
-  if (!c || !(Array.isArray(c.s) && c.s.length)) return '';
-  return (c.cl ? `<span class="chip" style="margin:8px 0 0">${esc(c.cl)}</span>` : '') + (c.k ? `<span class="chip" style="margin:8px 0 0">${esc(c.k)}</span>` : '') + `<div class="cstats">${c.s.map(([k, v]) => `<div class="cs"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+const statsHtml = m => !m || !(Array.isArray(m.s) && m.s.length) ? '' :
+  (m.cl ? `<span class="chip" style="margin:8px 0 0">${esc(m.cl)}</span>` : '') +
+  (m.k ? `<span class="chip" style="margin:8px 0 0">${esc(m.k)}</span>` : '') +
+  `<div class="cstats">${m.s.map(([k, v]) => `<div class="cs"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`;
+const itemStatsHtml = (it, byId) => statsHtml(it && it.id ? byId[it.id] : null);
+
+const ITEM_BASE = 'https://raw.githubusercontent.com/EXBO-Studio/stalzone-database/main/global/items/';
+const variantCache = {};
+const parseVariant = j => {
+  const out = { s: [] }, seen = new Set();
+  (j.infoBlocks || []).forEach(b => (b.elements || []).forEach(e => {
+    if (e.type !== 'numeric' && e.type !== 'key-value') return;
+    const name = e.type === 'numeric' ? (e.name && e.name.lines && e.name.lines.ru) : (e.key && e.key.lines && e.key.lines.ru);
+    let val = e.type === 'numeric' ? e.value : (e.value && e.value.lines && e.value.lines.ru);
+    if (!name || val == null || /^Ранг/.test(name) || /^Класс/.test(name) || seen.has(name)) return;
+    seen.add(name);
+    let s = typeof val === 'number' ? String(Math.round(val * 100) / 100) : String(val).trim();
+    if (/^(Вес|Переносимый вес)$/.test(name) && /^\d+(\.\d+)?$/.test(s)) s += ' кг';
+    out.s.push([name, s]);
+  }));
+  return out;
+};
+async function loadVariantStats(it, byId, e) {
+  const meta = it && it.id ? byId[it.id] : null;
+  if (!meta || !e) return null;
+  const key = meta.i + '|' + e;
+  if (variantCache[key] !== undefined) return variantCache[key];
+  let res = null;
+  try {
+    const j = await fetch(`${ITEM_BASE}${meta.c}/_variants/${meta.i}/${e}.json`).then(r => r.ok ? r.json() : null);
+    if (j) res = parseVariant(j);
+  } catch (err) { /* нет варианта — остаются базовые статы */ }
+  variantCache[key] = res;
+  return res;
+}
+const refreshGearStats = async (host, k, it, byId) => {
+  const box = host.querySelector(`[data-vstats="${k}"]`);
+  if (!box || !it || !it.e) return;
+  const v = await loadVariantStats(it, byId, it.e);
+  box.innerHTML = statsHtml(v ? Object.assign({}, byId[it.id], v) : byId[it.id] || null);
 };
 
 function renderGear(host, G, byId) {
@@ -881,8 +917,8 @@ function renderGear(host, G, byId) {
     const chips = list.length > 1 ? `<div class="gsets"><span class="mut">Сет</span>${list.map((_, j) => `<button class="ghost sm ${j === i ? 'on' : ''}" data-set="${k}|${j}">${j + 1}</button>`).join('')}</div>` : '';
     let inner = '<p class="mut">Не указано</p>';
     if (it) {
-      inner = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${esc(it.n)}</b>${it.e != null ? ` <span class="chip ok" style="margin:0">+${esc(it.e)}</span>` : ''}${k === 'armor' && it.t ? `<div class="mut" style="font-size:12px">${esc(ARMOR[it.t] || '')}</div>` : ''}</div></div>`;
-      inner += itemStatsHtml(it, byId);
+      inner = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${esc(it.n)}</b>${it.e != null ? ` <span class="chip ok" style="margin:0">+${esc(it.e)}</span>` : ''}</div></div>`;
+      inner += `<div data-vstats="${k}">${itemStatsHtml(it, byId)}</div>`;
       if (k === 'container') {
         const n = slotsFor(it, byId);
         inner += `<div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
@@ -894,6 +930,7 @@ function renderGear(host, G, byId) {
   const draw = () => {
     host.innerHTML = '<div class="gtiles">' + Object.keys(GEAR_KINDS).map(card).join('') + '</div>';
     host.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { const [k, j] = b.dataset.set.split('|'); cur[k] = Number(j); draw(); });
+    Object.keys(GEAR_KINDS).forEach(k => { const it = G[k][Math.min(cur[k], Math.max(0, G[k].length - 1))]; if (it && it.e) refreshGearStats(host, k, it, byId); });
   };
   draw();
 }
@@ -907,15 +944,15 @@ function gearEditor(host, G, byId) {
     const i = cur[k], it = list[i];
     const chips = `<div class="gsets"><span class="mut">Сет</span>${list.map((_, j) => `<button class="ghost sm ${j === i ? 'on' : ''}" data-set="${k}|${j}">${j + 1}</button>`).join('')}${list.length < 6 ? `<button class="ghost sm" data-add="${k}">+</button>` : ''}</div>`;
     if (!it) return `<div class="gcard"><b>${GEAR_KINDS[k]}</b>${chips}<p class="mut">Сетов пока нет. Нажми «+».</p></div>`;
-    const tile = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${it.n ? esc(it.n) : '<span class="mut">Не выбрано</span>'}</b>${k === 'armor' && it.k ? ` <span class="chip" style="margin:0">${esc(it.k)}</span>` : ''}${k === 'armor' && it.t ? `<div class="mut" style="font-size:12px">${esc(ARMOR[it.t] || '')}</div>` : ''}</div></div>`;
+    const tile = `<div class="gtile">${iconImg(it.p)}<div style="min-width:0"><b>${it.n ? esc(it.n) : '<span class="mut">Не выбрано</span>'}</b>${k === 'armor' && it.k ? ` <span class="chip" style="margin:0">${esc(it.k)}</span>` : ''}</div></div>`;
     const acts = `<div class="row" style="margin-top:8px"><button class="ghost sm" data-pick="${k}">${it.n ? 'Сменить' : 'Выбрать из каталога'}</button>${i > 0 ? `<button class="ghost sm" data-main="${k}">Сделать основным</button>` : ''}<button class="ghost sm" data-gdel="${k}">Удалить сет</button></div>`;
     let more;
     if (k === 'container') {
       const n = slotsFor(it, byId);
-      more = itemStatsHtml(it, byId) + `<p class="mut" style="margin:10px 0 0">Сборка (артефакты в слотах)</p><div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
+      more = `<div data-vstats="${k}">${itemStatsHtml(it, byId)}</div>` + `<p class="mut" style="margin:10px 0 0">Сборка (артефакты в слотах)</p><div class="slots">${Array.from({ length: n }, (_, s) => { const a = (it.b || [])[s];
         return `<div class="slot edit" data-slot="${s}">${a ? `${iconImg(a.p, 'sm')}<span>${esc(a.n)}</span><button class="ghost x" data-clr="${s}">×</button>` : '<span class="mut">+</span>'}</div>`; }).join('')}</div>`;
     } else {
-      more = itemStatsHtml(it, byId) + `<div class="row" style="margin-top:8px">${k === 'armor' ? `<select data-atype="1">${selOpts(ARMOR, it.t, 'Тип брони')}</select>` : ''}<input type="number" min="0" max="15" data-ench="${k}" placeholder="Заточка 0–15" value="${esc(it.e)}" style="width:140px"></div>`;
+      more = `<div data-vstats="${k}">${itemStatsHtml(it, byId)}</div><div class="row" style="margin-top:8px"><input type="number" min="0" max="15" data-ench="${k}" placeholder="Заточка 0–15" value="${esc(it.e)}" style="width:140px"></div>`;
     }
     return `<div class="gcard"><b>${GEAR_KINDS[k]}</b>${chips}${tile}${acts}${more}</div>`;
   };
@@ -930,8 +967,8 @@ function gearEditor(host, G, byId) {
     host.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { const k = b.dataset.pick;
       openPicker(GROUP[k], it => { const upd = { n: it.name, p: it.icon, id: it.id || null }; if (k === 'armor') upd.k = it.k || null; Object.assign(G[k][cur[k]], upd); draw(); }); });
     host.querySelectorAll('[data-ench]').forEach(el => el.oninput = () => { const k = el.dataset.ench;
-      G[k][cur[k]].e = el.value === '' ? null : Math.max(0, Math.min(15, Math.round(Number(el.value)))); });
-    host.querySelectorAll('[data-atype]').forEach(el => el.onchange = () => { G.armor[cur.armor].t = el.value || null; });
+      G[k][cur[k]].e = el.value === '' ? null : Math.max(0, Math.min(15, Math.round(Number(el.value))));
+      refreshGearStats(host, k, G[k][cur[k]], byId); });
     host.querySelectorAll('[data-slot]').forEach(el => el.onclick = () => openPicker('art', it => {
       const c = G.container[cur.container]; c.b = c.b || []; c.b[Number(el.dataset.slot)] = { n: it.name, p: it.icon }; draw(); }));
     host.querySelectorAll('[data-clr]').forEach(b => b.onclick = e => { e.stopPropagation();
