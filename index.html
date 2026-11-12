@@ -122,6 +122,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_0kJv9lAMAvBYwPQW23Qwyg_R_MkNBAe';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const app = document.getElementById('app');
+window.addEventListener('error', e => { const b = document.getElementById('body'); if (b && !b.innerHTML.trim()) b.innerHTML = '<div class="card err">Ошибка: ' + esc(String(e.message || e)) + '</div>'; });
+window.addEventListener('unhandledrejection', e => { const b = document.getElementById('body'); if (b && !b.innerHTML.trim()) b.innerHTML = '<div class="card err">Ошибка: ' + esc(String((e.reason && e.reason.message) || e.reason || e)) + '</div>'; });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let user = null, clan = null, tab = (() => { try { return localStorage.getItem('cp_tab') || 'rating'; } catch (e) { return 'rating'; } })();
 let clanView = false;
