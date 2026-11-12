@@ -258,6 +258,7 @@ function shell(title, tabs, views, again, icon, primary) {
     };
     sc.onclick = close;
   };
+  if (typeof views[tab] !== 'function') tab = tabs[0][0];
   views[tab]();
 }
 
@@ -273,7 +274,7 @@ function render() {
   if (tab !== 'player' && !tabs.some(t => t[0] === tab)) tab = 'rating';
   clanView = true;
   shell(clan.name, tabs, { rating: viewRating, match: viewMatch, history: viewHistory, roster: viewRoster, team: viewTeam, apps: viewApps,
-    settings: viewSettings, clan: viewClanTab, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm, events: viewEvents, player: viewPlayer, catalog: viewCatalog }, render, clan.avatar_url, ['rating', 'match', 'events', 'chat']);
+    settings: viewSettings, clan: viewClanTab, profile: viewProfile, admin: viewAdmin, chat: viewChat, dm: viewDm, events: viewEvents, player: viewPlayer, catalog: viewCatalog, search: viewSearch }, render, clan.avatar_url, ['rating', 'match', 'events', 'chat']);
 }
 
 function renderHub() {
